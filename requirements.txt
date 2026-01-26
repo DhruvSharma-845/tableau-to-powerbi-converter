@@ -1,0 +1,21 @@
+# Tableau to Power BI Converter Dependencies
+
+# Tableau file parsing
+tableaudocumentapi>=0.7
+lxml>=4.9.0
+
+# Data handling
+pandas>=2.0.0
+
+# GenAI for formula translation
+openai>=1.0.0
+
+# CLI
+click>=8.1.0
+rich>=13.0.0
+
+# Validation and testing
+pydantic>=2.0.0
+
+# File handling
+zipfile-deflate64>=0.2.0
