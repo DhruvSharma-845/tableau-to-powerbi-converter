@@ -821,5 +821,92 @@ def to_pbix(workbook: str, output_path: str, genai: bool):
         raise click.Abort()
 
 
+@cli.command()
+@click.argument('workbook', type=click.Path(exists=True))
+@click.option('--name', '-n', help='Dataset name (default: workbook name)')
+@click.option('--workspace', '-w', envvar='POWERBI_WORKSPACE_ID',
+              help='Power BI workspace ID')
+def cloud(workbook: str, name: Optional[str], workspace: Optional[str]):
+    """Convert Tableau workbook to Power BI via REST API.
+    
+    This creates a dataset directly in Power BI Service without needing
+    Windows or Power BI Desktop. Works from Mac/Linux!
+    
+    Required environment variables:
+    
+    \b
+      AZURE_TENANT_ID     - Azure AD tenant ID
+      AZURE_CLIENT_ID     - Azure AD app client ID
+      AZURE_CLIENT_SECRET - (Optional) For service principal auth
+      POWERBI_WORKSPACE_ID - (Optional) Target workspace
+    
+    Example:
+    
+    \b
+      # Set up Azure credentials
+      export AZURE_TENANT_ID="your-tenant-id"
+      export AZURE_CLIENT_ID="your-app-id"
+      
+      # Convert (will prompt for login)
+      python main.py cloud sample.twbx
+    """
+    console.print(Panel.fit(
+        "[bold blue]Tableau to Power BI Converter[/bold blue]",
+        subtitle="Cloud API Mode (No Windows Required!)"
+    ))
+    
+    # Check for required environment variables
+    tenant_id = os.environ.get('AZURE_TENANT_ID')
+    client_id = os.environ.get('AZURE_CLIENT_ID')
+    
+    if not tenant_id or not client_id:
+        console.print("\n[bold red]Missing Azure credentials![/bold red]")
+        console.print("\nRequired environment variables:")
+        console.print("  [cyan]AZURE_TENANT_ID[/cyan]     - Your Azure AD tenant ID")
+        console.print("  [cyan]AZURE_CLIENT_ID[/cyan]     - Your Azure AD app client ID")
+        console.print("  [dim]AZURE_CLIENT_SECRET[/dim] - (Optional) For automated auth")
+        console.print("\n[bold]Setup Instructions:[/bold]")
+        console.print("1. Go to [link=https://portal.azure.com]portal.azure.com[/link]")
+        console.print("2. Navigate to Azure Active Directory → App registrations")
+        console.print("3. Create a new app or use existing")
+        console.print("4. Add API permission: Power BI Service → Delegated → Dataset.ReadWrite.All")
+        console.print("5. Copy the Application (client) ID and Directory (tenant) ID")
+        raise click.Abort()
+    
+    try:
+        from powerbi_rest_api import PowerBIConfig, convert_tableau_to_powerbi_api
+        
+        config = PowerBIConfig(
+            tenant_id=tenant_id,
+            client_id=client_id,
+            client_secret=os.environ.get('AZURE_CLIENT_SECRET'),
+            workspace_id=workspace
+        )
+        
+        console.print(f"\n[cyan]Converting: {workbook}[/cyan]")
+        
+        result = convert_tableau_to_powerbi_api(workbook, config, name)
+        
+        console.print("\n[bold green]Success![/bold green]")
+        console.print(f"\nDataset created in Power BI Service:")
+        console.print(f"  ID: [cyan]{result['dataset'].get('id')}[/cyan]")
+        console.print(f"  Tables: {len(result['tables'])}")
+        
+        console.print("\n[bold]Next Steps:[/bold]")
+        console.print("1. Go to [link=https://app.powerbi.com]app.powerbi.com[/link]")
+        console.print("2. Find your dataset in the workspace")
+        console.print("3. Click '...' → 'Create report' to build visuals")
+        
+    except ImportError as e:
+        console.print(f"[bold red]Missing dependency: {e}[/bold red]")
+        console.print("Run: pip install requests")
+        raise click.Abort()
+    except Exception as e:
+        console.print(f"[bold red]Error: {str(e)}[/bold red]")
+        import traceback
+        console.print(f"[dim]{traceback.format_exc()}[/dim]")
+        raise click.Abort()
+
+
 if __name__ == "__main__":
     cli()
