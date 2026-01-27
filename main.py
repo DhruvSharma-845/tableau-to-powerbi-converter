@@ -542,5 +542,122 @@ def mappings():
     console.print(table)
 
 
+@cli.command()
+@click.argument('pbip_path', type=click.Path(exists=True))
+@click.option('-o', '--output', 'output_path', 
+              type=click.Path(), help='Output PBIX file path')
+@click.option('--workspace', '-w', envvar='POWERBI_WORKSPACE_ID',
+              help='Power BI workspace ID')
+@click.option('--no-cleanup', is_flag=True,
+              help='Keep temporary report in Power BI Service after conversion')
+def to_pbix(pbip_path: str, output_path: Optional[str], 
+            workspace: Optional[str], no_cleanup: bool):
+    """Convert PBIP folder to PBIX via Power BI Service.
+    
+    This command uploads the PBIP to Power BI Service and downloads it
+    as a PBIX file. Requires Azure AD authentication.
+    
+    Required environment variable:
+        AZURE_TENANT_ID - Your Azure AD tenant ID
+    
+    Optional environment variables (for service principal auth):
+        AZURE_CLIENT_ID - Service principal client ID
+        AZURE_CLIENT_SECRET - Service principal secret
+    """
+    
+    console.print(Panel.fit(
+        "[bold blue]PBIP to PBIX Converter[/bold blue]",
+        subtitle="via Power BI Service"
+    ))
+    
+    # Check for tenant ID
+    if not os.environ.get("AZURE_TENANT_ID"):
+        console.print("\n[bold red]Error: AZURE_TENANT_ID environment variable is required[/bold red]")
+        console.print("\nTo set it up:")
+        console.print("  1. Go to https://portal.azure.com")
+        console.print("  2. Search for 'Azure Active Directory'")
+        console.print("  3. Copy the 'Tenant ID' from the Overview page")
+        console.print("\nThen run:")
+        console.print("  [cyan]export AZURE_TENANT_ID='your-tenant-id-here'[/cyan]")
+        raise click.Abort()
+    
+    # Determine output path
+    if not output_path:
+        pbip_name = Path(pbip_path).stem
+        output_path = str(Path(pbip_path).parent / f"{pbip_name}.pbix")
+    
+    try:
+        from powerbi_service import PowerBIServiceClient
+        
+        client = PowerBIServiceClient()
+        
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console
+        ) as progress:
+            task = progress.add_task("Converting to PBIX...", total=None)
+            
+            result_path = client.convert_pbip_to_pbix(
+                pbip_path,
+                output_path,
+                workspace_id=workspace,
+                cleanup=not no_cleanup
+            )
+        
+        console.print(f"\n[bold green]Conversion Complete![/bold green]")
+        console.print(f"Output: {result_path}")
+    
+    except ImportError as e:
+        console.print(f"[bold red]Error: Missing dependency - {e}[/bold red]")
+        console.print("Run: pip install requests")
+        raise click.Abort()
+    except Exception as e:
+        console.print(f"[bold red]Error: {str(e)}[/bold red]")
+        raise click.Abort()
+
+
+@cli.command()
+@click.option('--workspace', '-w', envvar='POWERBI_WORKSPACE_ID',
+              help='Power BI workspace ID')
+def workspaces(workspace: Optional[str]):
+    """List available Power BI workspaces.
+    
+    Requires AZURE_TENANT_ID environment variable.
+    """
+    
+    console.print(Panel.fit(
+        "[bold blue]Power BI Workspaces[/bold blue]"
+    ))
+    
+    if not os.environ.get("AZURE_TENANT_ID"):
+        console.print("\n[bold red]Error: AZURE_TENANT_ID environment variable is required[/bold red]")
+        raise click.Abort()
+    
+    try:
+        from powerbi_service import PowerBIServiceClient
+        
+        client = PowerBIServiceClient()
+        ws_list = client.list_workspaces()
+        
+        if not ws_list:
+            console.print("\n[yellow]No workspaces found.[/yellow]")
+            return
+        
+        table = Table(show_header=True, header_style="bold")
+        table.add_column("Workspace Name")
+        table.add_column("Workspace ID")
+        
+        for ws in ws_list:
+            table.add_row(ws['name'], ws['id'])
+        
+        console.print(table)
+        console.print(f"\n[dim]Set POWERBI_WORKSPACE_ID to use a specific workspace[/dim]")
+    
+    except Exception as e:
+        console.print(f"[bold red]Error: {str(e)}[/bold red]")
+        raise click.Abort()
+
+
 if __name__ == "__main__":
     cli()

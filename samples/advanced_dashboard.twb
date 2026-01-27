@@ -1,0 +1,633 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!--
+Advanced Dashboard Sample
+Tests complex dashboard layouts, filter actions, highlight actions, URL actions,
+parameter controls, and multiple interactive elements
+Conversion complexity: HIGH
+-->
+<workbook version='18.1' xmlns:user='http://www.tableausoftware.com/xml/user'>
+  <datasources>
+    <!-- Parameters -->
+    <datasource name='Parameters'>
+      <column caption='Date Range' name='[Parameter.DateRange]' datatype='string' role='dimension'>
+        <calculation formula='"Last 30 Days"' />
+        <members>
+          <member value='"Today"' />
+          <member value='"Yesterday"' />
+          <member value='"Last 7 Days"' />
+          <member value='"Last 30 Days"' />
+          <member value='"Last 90 Days"' />
+          <member value='"Year to Date"' />
+          <member value='"Last Year"' />
+          <member value='"Custom"' />
+        </members>
+      </column>
+      
+      <column caption='Start Date' name='[Parameter.StartDate]' datatype='date' role='dimension'>
+        <calculation formula='#2024-01-01#' />
+      </column>
+      
+      <column caption='End Date' name='[Parameter.EndDate]' datatype='date' role='dimension'>
+        <calculation formula='TODAY()' />
+      </column>
+      
+      <column caption='Metric Selection' name='[Parameter.MetricSelection]' datatype='string' role='dimension'>
+        <calculation formula='"Revenue"' />
+        <members>
+          <member value='"Revenue"' />
+          <member value='"Profit"' />
+          <member value='"Units Sold"' />
+          <member value='"Orders"' />
+          <member value='"Customers"' />
+        </members>
+      </column>
+      
+      <column caption='Show Target Line' name='[Parameter.ShowTarget]' datatype='boolean' role='dimension'>
+        <calculation formula='true' />
+      </column>
+      
+      <column caption='Target Value' name='[Parameter.TargetValue]' datatype='real' role='measure'>
+        <calculation formula='100000' />
+        <range granularity='1000' min='0' max='1000000' />
+      </column>
+      
+      <column caption='Comparison Period' name='[Parameter.ComparisonPeriod]' datatype='string' role='dimension'>
+        <calculation formula='"Previous Period"' />
+        <members>
+          <member value='"Previous Period"' />
+          <member value='"Same Period Last Year"' />
+          <member value='"None"' />
+        </members>
+      </column>
+      
+      <column caption='Top N Products' name='[Parameter.TopN]' datatype='integer' role='measure'>
+        <calculation formula='10' />
+        <range granularity='1' min='5' max='50' />
+      </column>
+      
+      <column caption='Chart Type' name='[Parameter.ChartType]' datatype='string' role='dimension'>
+        <calculation formula='"Bar"' />
+        <members>
+          <member value='"Bar"' />
+          <member value='"Line"' />
+          <member value='"Area"' />
+        </members>
+      </column>
+    </datasource>
+    
+    <!-- Main Data Source -->
+    <datasource name='Retail.Analytics' caption='Retail Analytics'>
+      <connection class='hyper' filename='retail_analytics.hyper'>
+        <relation name='Transactions' table='transactions' type='table' />
+      </connection>
+      
+      <!-- Dimensions -->
+      <column name='[Transaction Date]' caption='Transaction Date' datatype='datetime' role='dimension' />
+      <column name='[Transaction ID]' caption='Transaction ID' datatype='string' role='dimension' />
+      <column name='[Customer ID]' caption='Customer ID' datatype='string' role='dimension' />
+      <column name='[Customer Name]' caption='Customer Name' datatype='string' role='dimension' />
+      <column name='[Customer Segment]' caption='Customer Segment' datatype='string' role='dimension' />
+      <column name='[Customer Tier]' caption='Customer Tier' datatype='string' role='dimension' />
+      <column name='[Product ID]' caption='Product ID' datatype='string' role='dimension' />
+      <column name='[Product Name]' caption='Product Name' datatype='string' role='dimension' />
+      <column name='[Category]' caption='Category' datatype='string' role='dimension' />
+      <column name='[Sub-Category]' caption='Sub-Category' datatype='string' role='dimension' />
+      <column name='[Brand]' caption='Brand' datatype='string' role='dimension' />
+      <column name='[Store ID]' caption='Store ID' datatype='string' role='dimension' />
+      <column name='[Store Name]' caption='Store Name' datatype='string' role='dimension' />
+      <column name='[Store Type]' caption='Store Type' datatype='string' role='dimension' />
+      <column name='[Region]' caption='Region' datatype='string' role='dimension' />
+      <column name='[State]' caption='State' datatype='string' role='dimension' semantic-role='[State].[Name]' />
+      <column name='[City]' caption='City' datatype='string' role='dimension' semantic-role='[City].[Name]' />
+      <column name='[Zip Code]' caption='Zip Code' datatype='string' role='dimension' />
+      <column name='[Latitude]' caption='Latitude' datatype='real' role='dimension' semantic-role='[Latitude]' />
+      <column name='[Longitude]' caption='Longitude' datatype='real' role='dimension' semantic-role='[Longitude]' />
+      <column name='[Channel]' caption='Sales Channel' datatype='string' role='dimension' />
+      <column name='[Payment Method]' caption='Payment Method' datatype='string' role='dimension' />
+      
+      <!-- Measures -->
+      <column name='[Revenue]' caption='Revenue' datatype='real' role='measure' aggregation='sum' />
+      <column name='[Cost]' caption='Cost' datatype='real' role='measure' aggregation='sum' />
+      <column name='[Quantity]' caption='Quantity' datatype='integer' role='measure' aggregation='sum' />
+      <column name='[Discount Amount]' caption='Discount Amount' datatype='real' role='measure' aggregation='sum' />
+      <column name='[Returns]' caption='Returns' datatype='real' role='measure' aggregation='sum' />
+      
+      <!-- Date-based calculated fields -->
+      <column name='[Calculation_DateFilter]' caption='Date in Range' datatype='boolean' role='dimension'>
+        <calculation formula='CASE [Parameter.DateRange]
+          WHEN "Today" THEN [Transaction Date] = TODAY()
+          WHEN "Yesterday" THEN [Transaction Date] = DATEADD("day", -1, TODAY())
+          WHEN "Last 7 Days" THEN [Transaction Date] >= DATEADD("day", -7, TODAY())
+          WHEN "Last 30 Days" THEN [Transaction Date] >= DATEADD("day", -30, TODAY())
+          WHEN "Last 90 Days" THEN [Transaction Date] >= DATEADD("day", -90, TODAY())
+          WHEN "Year to Date" THEN YEAR([Transaction Date]) = YEAR(TODAY())
+          WHEN "Last Year" THEN YEAR([Transaction Date]) = YEAR(TODAY()) - 1
+          WHEN "Custom" THEN [Transaction Date] >= [Parameter.StartDate] AND [Transaction Date] <= [Parameter.EndDate]
+          ELSE TRUE
+        END' />
+      </column>
+      
+      <!-- Dynamic metric based on parameter -->
+      <column name='[Calculation_SelectedMetric]' caption='Selected Metric' datatype='real' role='measure'>
+        <calculation formula='CASE [Parameter.MetricSelection]
+          WHEN "Revenue" THEN SUM([Revenue])
+          WHEN "Profit" THEN SUM([Revenue]) - SUM([Cost])
+          WHEN "Units Sold" THEN SUM([Quantity])
+          WHEN "Orders" THEN COUNTD([Transaction ID])
+          WHEN "Customers" THEN COUNTD([Customer ID])
+          ELSE SUM([Revenue])
+        END' />
+      </column>
+      
+      <!-- KPI Calculations -->
+      <column name='[Calculation_Profit]' caption='Profit' datatype='real' role='measure'>
+        <calculation formula='SUM([Revenue]) - SUM([Cost])' />
+      </column>
+      
+      <column name='[Calculation_ProfitMargin]' caption='Profit Margin %' datatype='real' role='measure'>
+        <calculation formula='(SUM([Revenue]) - SUM([Cost])) / SUM([Revenue])' />
+      </column>
+      
+      <column name='[Calculation_AvgOrderValue]' caption='Average Order Value' datatype='real' role='measure'>
+        <calculation formula='SUM([Revenue]) / COUNTD([Transaction ID])' />
+      </column>
+      
+      <column name='[Calculation_UnitsPerOrder]' caption='Units Per Order' datatype='real' role='measure'>
+        <calculation formula='SUM([Quantity]) / COUNTD([Transaction ID])' />
+      </column>
+      
+      <column name='[Calculation_ReturnRate]' caption='Return Rate' datatype='real' role='measure'>
+        <calculation formula='SUM([Returns]) / SUM([Revenue])' />
+      </column>
+      
+      <column name='[Calculation_NetRevenue]' caption='Net Revenue' datatype='real' role='measure'>
+        <calculation formula='SUM([Revenue]) - SUM([Returns]) - SUM([Discount Amount])' />
+      </column>
+      
+      <!-- Comparison calculations -->
+      <column name='[Calculation_PriorPeriodRevenue]' caption='Prior Period Revenue' datatype='real' role='measure'>
+        <calculation formula='IF [Parameter.ComparisonPeriod] = "Previous Period"
+          THEN LOOKUP(SUM([Revenue]), -1)
+          ELSEIF [Parameter.ComparisonPeriod] = "Same Period Last Year"
+          THEN LOOKUP(SUM([Revenue]), -12)
+          ELSE NULL
+        END' />
+      </column>
+      
+      <column name='[Calculation_RevenueChange]' caption='Revenue Change %' datatype='real' role='measure'>
+        <calculation formula='(SUM([Revenue]) - [Calculation_PriorPeriodRevenue]) / ABS([Calculation_PriorPeriodRevenue])' />
+      </column>
+      
+      <column name='[Calculation_VsTarget]' caption='Performance vs Target' datatype='real' role='measure'>
+        <calculation formula='[Calculation_SelectedMetric] - [Parameter.TargetValue]' />
+      </column>
+      
+      <column name='[Calculation_VsTargetPct]' caption='% of Target' datatype='real' role='measure'>
+        <calculation formula='[Calculation_SelectedMetric] / [Parameter.TargetValue]' />
+      </column>
+      
+      <!-- Ranking for Top N -->
+      <column name='[Calculation_ProductRank]' caption='Product Rank' datatype='integer' role='measure'>
+        <calculation formula='RANK(SUM([Revenue]))' />
+      </column>
+      
+      <column name='[Calculation_TopNFilter]' caption='Is Top N' datatype='boolean' role='dimension'>
+        <calculation formula='[Calculation_ProductRank] &lt;= [Parameter.TopN]' />
+      </column>
+      
+      <!-- Trend indicators -->
+      <column name='[Calculation_TrendIndicator]' caption='Trend Indicator' datatype='string' role='dimension'>
+        <calculation formula='IF [Calculation_RevenueChange] > 0.1 THEN "Strong Growth"
+          ELSEIF [Calculation_RevenueChange] > 0 THEN "Growing"
+          ELSEIF [Calculation_RevenueChange] = 0 THEN "Flat"
+          ELSEIF [Calculation_RevenueChange] > -0.1 THEN "Declining"
+          ELSE "Sharp Decline"
+        END' />
+      </column>
+      
+      <!-- YTD calculations -->
+      <column name='[Calculation_YTDRevenue]' caption='YTD Revenue' datatype='real' role='measure'>
+        <calculation formula='IF YEAR([Transaction Date]) = YEAR(TODAY()) 
+          AND [Transaction Date] &lt;= TODAY() 
+          THEN [Revenue] 
+        END' />
+      </column>
+      
+      <column name='[Calculation_PriorYTDRevenue]' caption='Prior YTD Revenue' datatype='real' role='measure'>
+        <calculation formula='IF YEAR([Transaction Date]) = YEAR(TODAY()) - 1 
+          AND MAKEDATE(YEAR(TODAY()), MONTH([Transaction Date]), DAY([Transaction Date])) &lt;= TODAY()
+          THEN [Revenue] 
+        END' />
+      </column>
+      
+      <column name='[Calculation_YTDGrowth]' caption='YTD Growth %' datatype='real' role='measure'>
+        <calculation formula='(SUM([Calculation_YTDRevenue]) - SUM([Calculation_PriorYTDRevenue])) / SUM([Calculation_PriorYTDRevenue])' />
+      </column>
+    </datasource>
+  </datasources>
+  
+  <worksheets>
+    <!-- KPI Cards -->
+    <worksheet name='KPI - Total Revenue'>
+      <table>
+        <panes>
+          <pane>
+            <mark class='text'>
+              <encoding attr='text' column='[Retail.Analytics].[Revenue]' />
+            </mark>
+          </pane>
+        </panes>
+        <rows>SUM([Retail.Analytics].[Revenue])</rows>
+        <cols></cols>
+      </table>
+      <datasource-dependencies datasource='Retail.Analytics'>
+        <column name='[Revenue]' />
+        <column name='[Calculation_DateFilter]' />
+      </datasource-dependencies>
+      <filter column='[Retail.Analytics].[Calculation_DateFilter]'>
+        <groupfilter function='member' member='true' />
+      </filter>
+    </worksheet>
+    
+    <worksheet name='KPI - Profit Margin'>
+      <table>
+        <panes>
+          <pane>
+            <mark class='text' />
+          </pane>
+        </panes>
+        <rows>[Retail.Analytics].[Calculation_ProfitMargin]</rows>
+        <cols></cols>
+      </table>
+      <datasource-dependencies datasource='Retail.Analytics'>
+        <column name='[Calculation_ProfitMargin]' />
+        <column name='[Calculation_DateFilter]' />
+      </datasource-dependencies>
+      <filter column='[Retail.Analytics].[Calculation_DateFilter]'>
+        <groupfilter function='member' member='true' />
+      </filter>
+    </worksheet>
+    
+    <worksheet name='KPI - Order Count'>
+      <table>
+        <panes>
+          <pane>
+            <mark class='text' />
+          </pane>
+        </panes>
+        <rows>COUNTD([Retail.Analytics].[Transaction ID])</rows>
+        <cols></cols>
+      </table>
+      <datasource-dependencies datasource='Retail.Analytics'>
+        <column name='[Transaction ID]' />
+        <column name='[Calculation_DateFilter]' />
+      </datasource-dependencies>
+      <filter column='[Retail.Analytics].[Calculation_DateFilter]'>
+        <groupfilter function='member' member='true' />
+      </filter>
+    </worksheet>
+    
+    <worksheet name='KPI - Avg Order Value'>
+      <table>
+        <panes>
+          <pane>
+            <mark class='text' />
+          </pane>
+        </panes>
+        <rows>[Retail.Analytics].[Calculation_AvgOrderValue]</rows>
+        <cols></cols>
+      </table>
+      <datasource-dependencies datasource='Retail.Analytics'>
+        <column name='[Calculation_AvgOrderValue]' />
+        <column name='[Calculation_DateFilter]' />
+      </datasource-dependencies>
+      <filter column='[Retail.Analytics].[Calculation_DateFilter]'>
+        <groupfilter function='member' member='true' />
+      </filter>
+    </worksheet>
+    
+    <!-- Main Charts -->
+    <worksheet name='Revenue Trend'>
+      <table>
+        <panes>
+          <pane>
+            <mark class='line'>
+              <encoding attr='color' column='[Retail.Analytics].[Channel]' />
+            </mark>
+          </pane>
+        </panes>
+        <rows>SUM([Retail.Analytics].[Revenue])</rows>
+        <cols>DATETRUNC("week", [Retail.Analytics].[Transaction Date])</cols>
+      </table>
+      <datasource-dependencies datasource='Retail.Analytics'>
+        <column name='[Transaction Date]' />
+        <column name='[Revenue]' />
+        <column name='[Channel]' />
+        <column name='[Calculation_DateFilter]' />
+      </datasource-dependencies>
+      <filter column='[Retail.Analytics].[Calculation_DateFilter]'>
+        <groupfilter function='member' member='true' />
+      </filter>
+    </worksheet>
+    
+    <worksheet name='Revenue by Category'>
+      <table>
+        <panes>
+          <pane>
+            <mark class='bar'>
+              <encoding attr='color' column='[Retail.Analytics].[Sub-Category]' />
+              <encoding attr='size' column='[Retail.Analytics].[Calculation_ProfitMargin]' />
+            </mark>
+          </pane>
+        </panes>
+        <rows>SUM([Retail.Analytics].[Revenue])</rows>
+        <cols>[Retail.Analytics].[Category]</cols>
+      </table>
+      <datasource-dependencies datasource='Retail.Analytics'>
+        <column name='[Category]' />
+        <column name='[Sub-Category]' />
+        <column name='[Revenue]' />
+        <column name='[Calculation_ProfitMargin]' />
+        <column name='[Calculation_DateFilter]' />
+      </datasource-dependencies>
+      <filter column='[Retail.Analytics].[Calculation_DateFilter]'>
+        <groupfilter function='member' member='true' />
+      </filter>
+    </worksheet>
+    
+    <worksheet name='Top Products'>
+      <table>
+        <panes>
+          <pane>
+            <mark class='bar'>
+              <encoding attr='color' column='[Retail.Analytics].[Calculation_TrendIndicator]' />
+              <encoding attr='tooltip' column='[Retail.Analytics].[Calculation_ProductRank]' />
+            </mark>
+          </pane>
+        </panes>
+        <rows>[Retail.Analytics].[Product Name]</rows>
+        <cols>SUM([Retail.Analytics].[Revenue])</cols>
+      </table>
+      <datasource-dependencies datasource='Retail.Analytics'>
+        <column name='[Product Name]' />
+        <column name='[Revenue]' />
+        <column name='[Calculation_ProductRank]' />
+        <column name='[Calculation_TrendIndicator]' />
+        <column name='[Calculation_TopNFilter]' />
+        <column name='[Calculation_DateFilter]' />
+      </datasource-dependencies>
+      <filter column='[Retail.Analytics].[Calculation_DateFilter]'>
+        <groupfilter function='member' member='true' />
+      </filter>
+      <filter column='[Retail.Analytics].[Calculation_TopNFilter]'>
+        <groupfilter function='member' member='true' />
+      </filter>
+    </worksheet>
+    
+    <worksheet name='Regional Map'>
+      <table>
+        <panes>
+          <pane>
+            <mark class='map'>
+              <encoding attr='color' column='[Retail.Analytics].[Revenue]' />
+              <encoding attr='size' column='[Retail.Analytics].[Calculation_Profit]' />
+            </mark>
+          </pane>
+        </panes>
+        <rows>[Retail.Analytics].[Latitude]</rows>
+        <cols>[Retail.Analytics].[Longitude]</cols>
+      </table>
+      <datasource-dependencies datasource='Retail.Analytics'>
+        <column name='[State]' />
+        <column name='[City]' />
+        <column name='[Latitude]' />
+        <column name='[Longitude]' />
+        <column name='[Revenue]' />
+        <column name='[Calculation_Profit]' />
+        <column name='[Calculation_DateFilter]' />
+      </datasource-dependencies>
+      <filter column='[Retail.Analytics].[Calculation_DateFilter]'>
+        <groupfilter function='member' member='true' />
+      </filter>
+    </worksheet>
+    
+    <worksheet name='Customer Segments'>
+      <table>
+        <panes>
+          <pane>
+            <mark class='pie'>
+              <encoding attr='color' column='[Retail.Analytics].[Customer Segment]' />
+            </mark>
+          </pane>
+        </panes>
+        <rows>SUM([Retail.Analytics].[Revenue])</rows>
+        <cols>[Retail.Analytics].[Customer Segment]</cols>
+      </table>
+      <datasource-dependencies datasource='Retail.Analytics'>
+        <column name='[Customer Segment]' />
+        <column name='[Revenue]' />
+        <column name='[Calculation_DateFilter]' />
+      </datasource-dependencies>
+      <filter column='[Retail.Analytics].[Calculation_DateFilter]'>
+        <groupfilter function='member' member='true' />
+      </filter>
+    </worksheet>
+    
+    <worksheet name='Store Performance'>
+      <table>
+        <panes>
+          <pane>
+            <mark class='Automatic'>
+              <encoding attr='color' column='[Retail.Analytics].[Calculation_VsTargetPct]' />
+            </mark>
+          </pane>
+        </panes>
+        <rows>[Retail.Analytics].[Store Name]</rows>
+        <cols>[Retail.Analytics].[Calculation_SelectedMetric]</cols>
+      </table>
+      <datasource-dependencies datasource='Retail.Analytics'>
+        <column name='[Store Name]' />
+        <column name='[Store Type]' />
+        <column name='[Calculation_SelectedMetric]' />
+        <column name='[Calculation_VsTargetPct]' />
+        <column name='[Calculation_DateFilter]' />
+      </datasource-dependencies>
+      <filter column='[Retail.Analytics].[Calculation_DateFilter]'>
+        <groupfilter function='member' member='true' />
+      </filter>
+    </worksheet>
+    
+    <worksheet name='Payment Methods'>
+      <table>
+        <panes>
+          <pane>
+            <mark class='bar' />
+          </pane>
+        </panes>
+        <rows>SUM([Retail.Analytics].[Revenue])</rows>
+        <cols>[Retail.Analytics].[Payment Method]</cols>
+      </table>
+      <datasource-dependencies datasource='Retail.Analytics'>
+        <column name='[Payment Method]' />
+        <column name='[Revenue]' />
+        <column name='[Calculation_DateFilter]' />
+      </datasource-dependencies>
+      <filter column='[Retail.Analytics].[Calculation_DateFilter]'>
+        <groupfilter function='member' member='true' />
+      </filter>
+    </worksheet>
+    
+    <worksheet name='YTD Comparison'>
+      <table>
+        <panes>
+          <pane>
+            <mark class='bar'>
+              <encoding attr='color' column='[Retail.Analytics].[Calculation_YTDGrowth]' />
+            </mark>
+          </pane>
+        </panes>
+        <rows>SUM([Retail.Analytics].[Calculation_YTDRevenue])</rows>
+        <rows>SUM([Retail.Analytics].[Calculation_PriorYTDRevenue])</rows>
+        <cols>MONTH([Retail.Analytics].[Transaction Date])</cols>
+      </table>
+      <datasource-dependencies datasource='Retail.Analytics'>
+        <column name='[Transaction Date]' />
+        <column name='[Calculation_YTDRevenue]' />
+        <column name='[Calculation_PriorYTDRevenue]' />
+        <column name='[Calculation_YTDGrowth]' />
+      </datasource-dependencies>
+    </worksheet>
+  </worksheets>
+  
+  <dashboards>
+    <!-- Main Executive Dashboard -->
+    <dashboard name='Executive Dashboard'>
+      <size maxwidth='1920' maxheight='1080' />
+      <zones>
+        <!-- Header -->
+        <zone type='text' x='0' y='0' w='1920' h='60'>
+          <formatted-text>
+            <run bold='true' fontsize='24' fontcolor='#1a365d'>Retail Analytics Executive Dashboard</run>
+          </formatted-text>
+        </zone>
+        
+        <!-- KPI Row -->
+        <zone name='KPI - Total Revenue' type='worksheet' x='0' y='60' w='480' h='120' />
+        <zone name='KPI - Profit Margin' type='worksheet' x='480' y='60' w='480' h='120' />
+        <zone name='KPI - Order Count' type='worksheet' x='960' y='60' w='480' h='120' />
+        <zone name='KPI - Avg Order Value' type='worksheet' x='1440' y='60' w='480' h='120' />
+        
+        <!-- Main charts row -->
+        <zone name='Revenue Trend' type='worksheet' x='0' y='180' w='960' h='400' />
+        <zone name='Regional Map' type='worksheet' x='960' y='180' w='960' h='400' />
+        
+        <!-- Bottom row -->
+        <zone name='Revenue by Category' type='worksheet' x='0' y='580' w='640' h='400' />
+        <zone name='Top Products' type='worksheet' x='640' y='580' w='640' h='400' />
+        <zone name='Customer Segments' type='worksheet' x='1280' y='580' w='320' h='400' />
+        <zone name='Payment Methods' type='worksheet' x='1600' y='580' w='320' h='400' />
+        
+        <!-- Parameter controls sidebar -->
+        <zone type='parameterControl' param='Parameter.DateRange' x='1700' y='10' w='200' h='40' />
+        <zone type='parameterControl' param='Parameter.MetricSelection' x='1700' y='60' w='200' h='40' />
+        <zone type='parameterControl' param='Parameter.TopN' x='1700' y='110' w='200' h='40' />
+        <zone type='parameterControl' param='Parameter.ComparisonPeriod' x='1700' y='160' w='200' h='40' />
+        
+        <!-- Filter controls -->
+        <zone type='quickFilter' column='[Retail.Analytics].[Region]' x='0' y='1000' w='400' h='60' />
+        <zone type='quickFilter' column='[Retail.Analytics].[Channel]' x='400' y='1000' w='400' h='60' />
+        <zone type='quickFilter' column='[Retail.Analytics].[Category]' x='800' y='1000' w='400' h='60' />
+      </zones>
+      
+      <actions>
+        <!-- Filter Actions -->
+        <action name='Filter by Category' type='filter' trigger='select'>
+          <source worksheet='Revenue by Category' />
+          <target worksheet='Top Products' />
+          <target worksheet='Revenue Trend' />
+        </action>
+        
+        <action name='Filter by Region' type='filter' trigger='select'>
+          <source worksheet='Regional Map' />
+          <target worksheet='Revenue Trend' />
+          <target worksheet='Revenue by Category' />
+          <target worksheet='Top Products' />
+          <target worksheet='Customer Segments' />
+        </action>
+        
+        <action name='Filter by Segment' type='filter' trigger='select'>
+          <source worksheet='Customer Segments' />
+          <target worksheet='Revenue Trend' />
+          <target worksheet='Top Products' />
+        </action>
+        
+        <!-- Highlight Actions -->
+        <action name='Highlight Trend' type='highlight' trigger='hover'>
+          <source worksheet='Revenue Trend' />
+          <target worksheet='Revenue by Category' />
+          <target worksheet='Regional Map' />
+        </action>
+        
+        <action name='Highlight Products' type='highlight' trigger='hover'>
+          <source worksheet='Top Products' />
+          <target worksheet='Revenue by Category' />
+        </action>
+        
+        <!-- URL Actions -->
+        <action name='Product Detail' type='url' trigger='menu'>
+          <source worksheet='Top Products' />
+          <target url='https://analytics.company.com/product-detail?id=&lt;Product ID&gt;' />
+        </action>
+        
+        <action name='Customer CRM' type='url' trigger='menu'>
+          <source worksheet='Customer Segments' />
+          <target url='https://crm.company.com/segment/&lt;Customer Segment&gt;' />
+        </action>
+        
+        <action name='Store Manager' type='url' trigger='menu'>
+          <source worksheet='Regional Map' />
+          <target url='https://stores.company.com/manage/&lt;Store ID&gt;' />
+        </action>
+      </actions>
+    </dashboard>
+    
+    <!-- Store Performance Dashboard -->
+    <dashboard name='Store Performance Dashboard'>
+      <size maxwidth='1920' maxheight='1080' />
+      <zones>
+        <zone type='text' x='0' y='0' w='1920' h='60'>
+          <formatted-text>
+            <run bold='true' fontsize='22'>Store Performance Analysis</run>
+          </formatted-text>
+        </zone>
+        
+        <zone name='Store Performance' type='worksheet' x='0' y='60' w='1200' h='500' />
+        <zone name='Regional Map' type='worksheet' x='1200' y='60' w='720' h='500' />
+        <zone name='YTD Comparison' type='worksheet' x='0' y='560' w='1920' h='400' />
+        
+        <zone type='parameterControl' param='Parameter.MetricSelection' x='1600' y='10' w='300' h='40' />
+        <zone type='parameterControl' param='Parameter.TargetValue' x='1600' y='60' w='300' h='40' />
+        <zone type='quickFilter' column='[Retail.Analytics].[Store Type]' x='0' y='980' w='600' h='60' />
+        <zone type='quickFilter' column='[Retail.Analytics].[Region]' x='600' y='980' w='600' h='60' />
+      </zones>
+      
+      <actions>
+        <action name='Drill to Store' type='filter' trigger='select'>
+          <source worksheet='Store Performance' />
+          <target worksheet='YTD Comparison' />
+        </action>
+        
+        <action name='Map to Store' type='filter' trigger='select'>
+          <source worksheet='Regional Map' />
+          <target worksheet='Store Performance' />
+          <target worksheet='YTD Comparison' />
+        </action>
+        
+        <action name='Open Store Dashboard' type='url' trigger='menu'>
+          <source worksheet='Store Performance' />
+          <target url='https://stores.company.com/dashboard/&lt;Store ID&gt;' />
+        </action>
+      </actions>
+    </dashboard>
+  </dashboards>
+</workbook>
