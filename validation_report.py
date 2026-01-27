@@ -146,7 +146,8 @@ class ValidationReport:
                            SeverityLevel.WARNING, SeverityLevel.INFO]:
                 severity_issues = [i for i in self.issues if i.severity == severity]
                 if severity_issues:
-                    icon = {"critical": "🔴", "error": "🟠", "warning": "🟡", "info": "🔵"}
+                    # Use ASCII-safe icons for Windows compatibility
+                    icon = {"critical": "[X]", "error": "[!]", "warning": "[*]", "info": "[i]"}
                     lines.append(f"### {icon.get(severity.value, '')} {severity.value.upper()}")
                     lines.append("")
                     
@@ -620,7 +621,7 @@ class ValidationReportGenerator:
                 output = output.with_suffix(".md")
         
         output.parent.mkdir(parents=True, exist_ok=True)
-        with open(output, 'w') as f:
+        with open(output, 'w', encoding='utf-8') as f:
             f.write(content)
         
         return output
