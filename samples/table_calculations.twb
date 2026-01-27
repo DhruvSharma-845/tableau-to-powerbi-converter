@@ -1,0 +1,324 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!--
+Table Calculations Sample
+Tests RUNNING_*, WINDOW_*, RANK, INDEX, LOOKUP, and other table calculations
+Conversion complexity: VERY HIGH
+-->
+<workbook version='18.1' xmlns:user='http://www.tableausoftware.com/xml/user'>
+  <datasources>
+    <datasource name='Parameters'>
+      <column caption='Moving Average Period' name='[Parameter.MovingAvgPeriod]' datatype='integer' role='measure'>
+        <calculation formula='7' />
+        <range granularity='1' min='3' max='30' />
+      </column>
+      <column caption='Rank Type' name='[Parameter.RankType]' datatype='string' role='dimension'>
+        <calculation formula='"Dense"' />
+        <members>
+          <member value='"Standard"' />
+          <member value='"Dense"' />
+          <member value='"Unique"' />
+          <member value='"Percentile"' />
+        </members>
+      </column>
+    </datasource>
+    
+    <datasource name='TimeSeries.Data' caption='Time Series Data'>
+      <connection class='postgres' server='analytics.company.com' port='5432' dbname='timeseries' username='analyst'>
+        <relation name='DailySales' table='public.daily_sales' type='table' />
+      </connection>
+      
+      <!-- Base columns -->
+      <column name='[Date]' caption='Date' datatype='date' role='dimension' semantic-role='[Transaction Date]' />
+      <column name='[Week]' caption='Week' datatype='date' role='dimension' />
+      <column name='[Month]' caption='Month' datatype='date' role='dimension' />
+      <column name='[Quarter]' caption='Quarter' datatype='date' role='dimension' />
+      <column name='[Year]' caption='Year' datatype='integer' role='dimension' />
+      <column name='[Product]' caption='Product' datatype='string' role='dimension' />
+      <column name='[Category]' caption='Category' datatype='string' role='dimension' />
+      <column name='[Store]' caption='Store' datatype='string' role='dimension' />
+      <column name='[Region]' caption='Region' datatype='string' role='dimension' />
+      <column name='[Sales]' caption='Sales' datatype='real' role='measure' aggregation='sum' />
+      <column name='[Units]' caption='Units' datatype='integer' role='measure' aggregation='sum' />
+      <column name='[Customers]' caption='Customers' datatype='integer' role='measure' aggregation='countd' />
+      
+      <!-- Running Total Calculations -->
+      <column name='[Calculation_RunningSum]' caption='Running Total Sales' datatype='real' role='measure'>
+        <calculation formula='RUNNING_SUM(SUM([Sales]))' />
+      </column>
+      
+      <column name='[Calculation_RunningAvg]' caption='Running Average Sales' datatype='real' role='measure'>
+        <calculation formula='RUNNING_AVG(SUM([Sales]))' />
+      </column>
+      
+      <column name='[Calculation_RunningCount]' caption='Running Count' datatype='integer' role='measure'>
+        <calculation formula='RUNNING_COUNT(SUM([Sales]))' />
+      </column>
+      
+      <column name='[Calculation_RunningMin]' caption='Running Min Sales' datatype='real' role='measure'>
+        <calculation formula='RUNNING_MIN(SUM([Sales]))' />
+      </column>
+      
+      <column name='[Calculation_RunningMax]' caption='Running Max Sales' datatype='real' role='measure'>
+        <calculation formula='RUNNING_MAX(SUM([Sales]))' />
+      </column>
+      
+      <!-- Window Calculations -->
+      <column name='[Calculation_WindowSum3]' caption='3-Period Window Sum' datatype='real' role='measure'>
+        <calculation formula='WINDOW_SUM(SUM([Sales]), -2, 0)' />
+      </column>
+      
+      <column name='[Calculation_WindowAvg7]' caption='7-Day Moving Average' datatype='real' role='measure'>
+        <calculation formula='WINDOW_AVG(SUM([Sales]), -6, 0)' />
+      </column>
+      
+      <column name='[Calculation_WindowAvgParam]' caption='Moving Average (Param)' datatype='real' role='measure'>
+        <calculation formula='WINDOW_AVG(SUM([Sales]), -[Parameter.MovingAvgPeriod]+1, 0)' />
+      </column>
+      
+      <column name='[Calculation_WindowMax30]' caption='30-Day Rolling Max' datatype='real' role='measure'>
+        <calculation formula='WINDOW_MAX(SUM([Sales]), -29, 0)' />
+      </column>
+      
+      <column name='[Calculation_WindowMin30]' caption='30-Day Rolling Min' datatype='real' role='measure'>
+        <calculation formula='WINDOW_MIN(SUM([Sales]), -29, 0)' />
+      </column>
+      
+      <column name='[Calculation_CenteredAvg]' caption='Centered Moving Average' datatype='real' role='measure'>
+        <calculation formula='WINDOW_AVG(SUM([Sales]), -3, 3)' />
+      </column>
+      
+      <!-- Rank Calculations -->
+      <column name='[Calculation_Rank]' caption='Rank' datatype='integer' role='measure'>
+        <calculation formula='RANK(SUM([Sales]))' />
+      </column>
+      
+      <column name='[Calculation_RankDense]' caption='Dense Rank' datatype='integer' role='measure'>
+        <calculation formula='RANK_DENSE(SUM([Sales]))' />
+      </column>
+      
+      <column name='[Calculation_RankUnique]' caption='Unique Rank' datatype='integer' role='measure'>
+        <calculation formula='RANK_UNIQUE(SUM([Sales]))' />
+      </column>
+      
+      <column name='[Calculation_RankPercentile]' caption='Rank Percentile' datatype='real' role='measure'>
+        <calculation formula='RANK_PERCENTILE(SUM([Sales]))' />
+      </column>
+      
+      <column name='[Calculation_RankDescending]' caption='Rank (Descending)' datatype='integer' role='measure'>
+        <calculation formula='RANK(SUM([Sales]), "desc")' />
+      </column>
+      
+      <!-- Index and Position Calculations -->
+      <column name='[Calculation_Index]' caption='Row Index' datatype='integer' role='measure'>
+        <calculation formula='INDEX()' />
+      </column>
+      
+      <column name='[Calculation_First]' caption='Distance from First' datatype='integer' role='measure'>
+        <calculation formula='FIRST()' />
+      </column>
+      
+      <column name='[Calculation_Last]' caption='Distance from Last' datatype='integer' role='measure'>
+        <calculation formula='LAST()' />
+      </column>
+      
+      <column name='[Calculation_Size]' caption='Partition Size' datatype='integer' role='measure'>
+        <calculation formula='SIZE()' />
+      </column>
+      
+      <!-- Lookup Calculations -->
+      <column name='[Calculation_LookupPrev]' caption='Previous Period Sales' datatype='real' role='measure'>
+        <calculation formula='LOOKUP(SUM([Sales]), -1)' />
+      </column>
+      
+      <column name='[Calculation_LookupNext]' caption='Next Period Sales' datatype='real' role='measure'>
+        <calculation formula='LOOKUP(SUM([Sales]), 1)' />
+      </column>
+      
+      <column name='[Calculation_LookupFirst]' caption='First Period Sales' datatype='real' role='measure'>
+        <calculation formula='LOOKUP(SUM([Sales]), FIRST())' />
+      </column>
+      
+      <column name='[Calculation_LookupLast]' caption='Last Period Sales' datatype='real' role='measure'>
+        <calculation formula='LOOKUP(SUM([Sales]), LAST())' />
+      </column>
+      
+      <!-- Difference Calculations (using LOOKUP) -->
+      <column name='[Calculation_SalesDiff]' caption='Sales Change' datatype='real' role='measure'>
+        <calculation formula='SUM([Sales]) - LOOKUP(SUM([Sales]), -1)' />
+      </column>
+      
+      <column name='[Calculation_SalesPctChange]' caption='Sales % Change' datatype='real' role='measure'>
+        <calculation formula='(SUM([Sales]) - LOOKUP(SUM([Sales]), -1)) / ABS(LOOKUP(SUM([Sales]), -1))' />
+      </column>
+      
+      <column name='[Calculation_YoYChange]' caption='Year-over-Year Change' datatype='real' role='measure'>
+        <calculation formula='SUM([Sales]) - LOOKUP(SUM([Sales]), -12)' />
+      </column>
+      
+      <!-- Previous Value (recursive) -->
+      <column name='[Calculation_PrevValue]' caption='Previous Value Recursive' datatype='real' role='measure'>
+        <calculation formula='PREVIOUS_VALUE(0) + SUM([Sales])' />
+      </column>
+      
+      <!-- Compound Table Calculations -->
+      <column name='[Calculation_RunningPctTotal]' caption='Running % of Total' datatype='real' role='measure'>
+        <calculation formula='RUNNING_SUM(SUM([Sales])) / TOTAL(SUM([Sales]))' />
+      </column>
+      
+      <column name='[Calculation_RankWindow]' caption='Rank within Window' datatype='integer' role='measure'>
+        <calculation formula='RANK(WINDOW_AVG(SUM([Sales]), -6, 0))' />
+      </column>
+      
+      <column name='[Calculation_MovingAvgVsTotal]' caption='Moving Avg vs Overall' datatype='real' role='measure'>
+        <calculation formula='WINDOW_AVG(SUM([Sales]), -6, 0) / WINDOW_AVG(SUM([Sales]), FIRST(), LAST())' />
+      </column>
+      
+      <!-- Conditional Table Calculations -->
+      <column name='[Calculation_TopN]' caption='Top N Filter' datatype='boolean' role='dimension'>
+        <calculation formula='RANK(SUM([Sales])) &lt;= [Parameter.MovingAvgPeriod]' />
+      </column>
+      
+      <column name='[Calculation_AboveAvg]' caption='Above Average Flag' datatype='boolean' role='dimension'>
+        <calculation formula='SUM([Sales]) > WINDOW_AVG(SUM([Sales]), FIRST(), LAST())' />
+      </column>
+      
+      <column name='[Calculation_GrowthStreak]' caption='Growth Streak' datatype='integer' role='measure'>
+        <calculation formula='IF SUM([Sales]) > LOOKUP(SUM([Sales]), -1) 
+          THEN PREVIOUS_VALUE(0) + 1 
+          ELSE 0 
+        END' />
+      </column>
+    </datasource>
+  </datasources>
+  
+  <worksheets>
+    <worksheet name='Running Totals'>
+      <table>
+        <panes>
+          <pane>
+            <mark class='line' />
+          </pane>
+        </panes>
+        <rows>[TimeSeries.Data].[Calculation_RunningSum]</rows>
+        <cols>[TimeSeries.Data].[Date]</cols>
+      </table>
+      <datasource-dependencies datasource='TimeSeries.Data'>
+        <column name='[Date]' />
+        <column name='[Calculation_RunningSum]' />
+      </datasource-dependencies>
+    </worksheet>
+    
+    <worksheet name='Moving Averages'>
+      <table>
+        <panes>
+          <pane>
+            <mark class='line'>
+              <encoding attr='color' column='[TimeSeries.Data].[Category]' />
+            </mark>
+          </pane>
+        </panes>
+        <rows>SUM([TimeSeries.Data].[Sales])</rows>
+        <rows>[TimeSeries.Data].[Calculation_WindowAvg7]</rows>
+        <cols>[TimeSeries.Data].[Date]</cols>
+      </table>
+      <datasource-dependencies datasource='TimeSeries.Data'>
+        <column name='[Date]' />
+        <column name='[Category]' />
+        <column name='[Sales]' />
+        <column name='[Calculation_WindowAvg7]' />
+      </datasource-dependencies>
+    </worksheet>
+    
+    <worksheet name='Product Rankings'>
+      <table>
+        <panes>
+          <pane>
+            <mark class='bar'>
+              <encoding attr='color' column='[TimeSeries.Data].[Calculation_RankDense]' />
+            </mark>
+          </pane>
+        </panes>
+        <rows>SUM([TimeSeries.Data].[Sales])</rows>
+        <cols>[TimeSeries.Data].[Product]</cols>
+      </table>
+      <datasource-dependencies datasource='TimeSeries.Data'>
+        <column name='[Product]' />
+        <column name='[Sales]' />
+        <column name='[Calculation_RankDense]' />
+      </datasource-dependencies>
+      <filter column='[TimeSeries.Data].[Calculation_TopN]'>
+        <groupfilter function='member' member='true' />
+      </filter>
+    </worksheet>
+    
+    <worksheet name='Period Comparison'>
+      <table>
+        <panes>
+          <pane>
+            <mark class='bar'>
+              <encoding attr='color' column='[TimeSeries.Data].[Calculation_SalesDiff]' />
+              <encoding attr='text' column='[TimeSeries.Data].[Calculation_SalesPctChange]' />
+            </mark>
+          </pane>
+        </panes>
+        <rows>SUM([TimeSeries.Data].[Sales])</rows>
+        <cols>[TimeSeries.Data].[Month]</cols>
+      </table>
+      <datasource-dependencies datasource='TimeSeries.Data'>
+        <column name='[Month]' />
+        <column name='[Sales]' />
+        <column name='[Calculation_SalesDiff]' />
+        <column name='[Calculation_SalesPctChange]' />
+      </datasource-dependencies>
+    </worksheet>
+    
+    <worksheet name='Growth Analysis'>
+      <table>
+        <panes>
+          <pane>
+            <mark class='area'>
+              <encoding attr='color' column='[TimeSeries.Data].[Calculation_AboveAvg]' />
+            </mark>
+          </pane>
+        </panes>
+        <rows>[TimeSeries.Data].[Calculation_GrowthStreak]</rows>
+        <cols>[TimeSeries.Data].[Date]</cols>
+      </table>
+      <datasource-dependencies datasource='TimeSeries.Data'>
+        <column name='[Date]' />
+        <column name='[Calculation_GrowthStreak]' />
+        <column name='[Calculation_AboveAvg]' />
+      </datasource-dependencies>
+    </worksheet>
+  </worksheets>
+  
+  <dashboards>
+    <dashboard name='Table Calculations Dashboard'>
+      <size maxwidth='1600' maxheight='1000' />
+      <zones>
+        <zone name='Running Totals' type='worksheet' x='0' y='60' w='800' h='300' />
+        <zone name='Moving Averages' type='worksheet' x='800' y='60' w='800' h='300' />
+        <zone name='Product Rankings' type='worksheet' x='0' y='360' w='533' h='340' />
+        <zone name='Period Comparison' type='worksheet' x='533' y='360' w='534' h='340' />
+        <zone name='Growth Analysis' type='worksheet' x='1067' y='360' w='533' h='340' />
+        <zone type='text' x='600' y='10' w='400' h='40'>
+          <formatted-text>
+            <run bold='true' fontsize='18'>Table Calculations Analysis</run>
+          </formatted-text>
+        </zone>
+        <zone type='parameterControl' param='Parameter.MovingAvgPeriod' x='1400' y='10' w='180' h='40' />
+      </zones>
+      <actions>
+        <action name='Filter Products' type='filter'>
+          <source worksheet='Product Rankings' />
+          <target worksheet='Moving Averages' />
+        </action>
+        <action name='Highlight Periods' type='highlight'>
+          <source worksheet='Period Comparison' />
+          <target worksheet='Running Totals' />
+          <target worksheet='Growth Analysis' />
+        </action>
+      </actions>
+    </dashboard>
+  </dashboards>
+</workbook>

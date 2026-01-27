@@ -1,0 +1,438 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!--
+Multi-Source Joins Sample
+Tests multiple data source types (SQL Server, PostgreSQL, Excel, CSV) with complex joins
+Conversion complexity: HIGH
+-->
+<workbook version='18.1' xmlns:user='http://www.tableausoftware.com/xml/user'>
+  <datasources>
+    <datasource name='Parameters'>
+      <column caption='Currency' name='[Parameter.Currency]' datatype='string' role='dimension'>
+        <calculation formula='"USD"' />
+        <members>
+          <member value='"USD"' />
+          <member value='"EUR"' />
+          <member value='"GBP"' />
+          <member value='"JPY"' />
+        </members>
+      </column>
+    </datasource>
+    
+    <!-- Primary SQL Server Data Source with multiple table joins -->
+    <datasource name='Orders.SQLServer' caption='Order Management (SQL Server)'>
+      <connection class='sqlserver' server='orders-db.company.com' port='1433' dbname='OrderManagement' username='tableau_svc' authentication='sql'>
+        <!-- Orders table -->
+        <relation name='Orders' table='[dbo].[Orders]' type='table'>
+          <columns>
+            <column name='OrderID' type='integer' />
+            <column name='CustomerID' type='string' />
+            <column name='OrderDate' type='datetime' />
+            <column name='ShipDate' type='datetime' />
+            <column name='ShipMode' type='string' />
+            <column name='OrderPriority' type='string' />
+          </columns>
+        </relation>
+        
+        <!-- Order Details table -->
+        <relation name='OrderDetails' table='[dbo].[OrderDetails]' type='table'>
+          <columns>
+            <column name='OrderID' type='integer' />
+            <column name='ProductID' type='string' />
+            <column name='Quantity' type='integer' />
+            <column name='UnitPrice' type='real' />
+            <column name='Discount' type='real' />
+          </columns>
+        </relation>
+        
+        <!-- Join Orders to OrderDetails -->
+        <relation name='Orders_Details_Join' type='join' join='inner'>
+          <clause type='join'>
+            <expression op='='>
+              <expression op='[Orders].[OrderID]' />
+              <expression op='[OrderDetails].[OrderID]' />
+            </expression>
+          </clause>
+        </relation>
+        
+        <!-- Products table -->
+        <relation name='Products' table='[dbo].[Products]' type='table'>
+          <columns>
+            <column name='ProductID' type='string' />
+            <column name='ProductName' type='string' />
+            <column name='CategoryID' type='integer' />
+            <column name='SupplierID' type='integer' />
+            <column name='UnitCost' type='real' />
+          </columns>
+        </relation>
+        
+        <!-- Left join to Products -->
+        <relation name='Details_Products_Join' type='join' join='left'>
+          <clause type='join'>
+            <expression op='='>
+              <expression op='[OrderDetails].[ProductID]' />
+              <expression op='[Products].[ProductID]' />
+            </expression>
+          </clause>
+        </relation>
+        
+        <!-- Customers table -->
+        <relation name='Customers' table='[dbo].[Customers]' type='table'>
+          <columns>
+            <column name='CustomerID' type='string' />
+            <column name='CustomerName' type='string' />
+            <column name='Segment' type='string' />
+            <column name='Country' type='string' />
+            <column name='Region' type='string' />
+            <column name='City' type='string' />
+          </columns>
+        </relation>
+        
+        <!-- Left join to Customers -->
+        <relation name='Orders_Customers_Join' type='join' join='left'>
+          <clause type='join'>
+            <expression op='='>
+              <expression op='[Orders].[CustomerID]' />
+              <expression op='[Customers].[CustomerID]' />
+            </expression>
+          </clause>
+        </relation>
+      </connection>
+      
+      <!-- Columns -->
+      <column name='[OrderID]' caption='Order ID' datatype='integer' role='dimension' />
+      <column name='[CustomerID]' caption='Customer ID' datatype='string' role='dimension' />
+      <column name='[CustomerName]' caption='Customer Name' datatype='string' role='dimension' />
+      <column name='[Segment]' caption='Customer Segment' datatype='string' role='dimension' />
+      <column name='[Country]' caption='Country' datatype='string' role='dimension' semantic-role='[Country].[ISO3166_2]' />
+      <column name='[Region]' caption='Region' datatype='string' role='dimension' />
+      <column name='[City]' caption='City' datatype='string' role='dimension' semantic-role='[City].[Name]' />
+      <column name='[OrderDate]' caption='Order Date' datatype='datetime' role='dimension' />
+      <column name='[ShipDate]' caption='Ship Date' datatype='datetime' role='dimension' />
+      <column name='[ShipMode]' caption='Ship Mode' datatype='string' role='dimension' />
+      <column name='[OrderPriority]' caption='Order Priority' datatype='string' role='dimension' />
+      <column name='[ProductID]' caption='Product ID' datatype='string' role='dimension' />
+      <column name='[ProductName]' caption='Product Name' datatype='string' role='dimension' />
+      <column name='[CategoryID]' caption='Category ID' datatype='integer' role='dimension' />
+      <column name='[Quantity]' caption='Quantity' datatype='integer' role='measure' aggregation='sum' />
+      <column name='[UnitPrice]' caption='Unit Price' datatype='real' role='measure' aggregation='avg' />
+      <column name='[Discount]' caption='Discount' datatype='real' role='measure' aggregation='avg' />
+      <column name='[UnitCost]' caption='Unit Cost' datatype='real' role='measure' aggregation='avg' />
+      
+      <!-- Calculated fields -->
+      <column name='[Calculation_Revenue]' caption='Revenue' datatype='real' role='measure'>
+        <calculation formula='[Quantity] * [UnitPrice] * (1 - [Discount])' />
+      </column>
+      
+      <column name='[Calculation_Cost]' caption='Total Cost' datatype='real' role='measure'>
+        <calculation formula='[Quantity] * [UnitCost]' />
+      </column>
+      
+      <column name='[Calculation_Profit]' caption='Profit' datatype='real' role='measure'>
+        <calculation formula='[Calculation_Revenue] - [Calculation_Cost]' />
+      </column>
+      
+      <column name='[Calculation_ProfitMargin]' caption='Profit Margin' datatype='real' role='measure'>
+        <calculation formula='[Calculation_Profit] / [Calculation_Revenue]' />
+      </column>
+      
+      <column name='[Calculation_ShipDays]' caption='Days to Ship' datatype='integer' role='measure'>
+        <calculation formula='DATEDIFF("day", [OrderDate], [ShipDate])' />
+      </column>
+    </datasource>
+    
+    <!-- PostgreSQL Data Source for Product Categories -->
+    <datasource name='Categories.PostgreSQL' caption='Product Categories (PostgreSQL)'>
+      <connection class='postgres' server='products-db.company.com' port='5432' dbname='product_catalog' username='readonly'>
+        <relation name='Categories' table='public.categories' type='table' />
+        <relation name='Subcategories' table='public.subcategories' type='table' />
+        <relation name='Cat_Subcat_Join' type='join' join='left'>
+          <clause type='join'>
+            <expression op='='>
+              <expression op='[Categories].[CategoryID]' />
+              <expression op='[Subcategories].[CategoryID]' />
+            </expression>
+          </clause>
+        </relation>
+      </connection>
+      
+      <column name='[CategoryID]' caption='Category ID' datatype='integer' role='dimension' />
+      <column name='[CategoryName]' caption='Category Name' datatype='string' role='dimension' />
+      <column name='[CategoryDescription]' caption='Category Description' datatype='string' role='dimension' />
+      <column name='[SubcategoryID]' caption='Subcategory ID' datatype='integer' role='dimension' />
+      <column name='[SubcategoryName]' caption='Subcategory Name' datatype='string' role='dimension' />
+      <column name='[TargetMargin]' caption='Target Margin' datatype='real' role='measure' />
+    </datasource>
+    
+    <!-- Excel Data Source for Budget/Targets -->
+    <datasource name='Budget.Excel' caption='Budget Data (Excel)'>
+      <connection class='excel' filename='\\fileserver\reports\FY2024_Budget.xlsx'>
+        <relation name='MonthlyTargets' table='[Monthly Targets$]' type='table' />
+        <relation name='CategoryBudgets' table='[Category Budgets$]' type='table' />
+      </connection>
+      
+      <column name='[FiscalYear]' caption='Fiscal Year' datatype='integer' role='dimension' />
+      <column name='[FiscalMonth]' caption='Fiscal Month' datatype='integer' role='dimension' />
+      <column name='[CategoryName]' caption='Category' datatype='string' role='dimension' />
+      <column name='[Region]' caption='Region' datatype='string' role='dimension' />
+      <column name='[BudgetAmount]' caption='Budget Amount' datatype='real' role='measure' aggregation='sum' />
+      <column name='[TargetUnits]' caption='Target Units' datatype='integer' role='measure' aggregation='sum' />
+      
+      <column name='[Calculation_BudgetVsActual]' caption='Budget vs Actual' datatype='real' role='measure'>
+        <calculation formula='SUM([BudgetAmount]) - SUM([Orders.SQLServer].[Calculation_Revenue])' />
+      </column>
+    </datasource>
+    
+    <!-- CSV Data Source for Exchange Rates -->
+    <datasource name='FX.CSV' caption='Exchange Rates (CSV)'>
+      <connection class='textscan' filename='\\fileserver\data\exchange_rates.csv' separator=','>
+        <relation name='ExchangeRates' table='exchange_rates.csv' type='table' />
+      </connection>
+      
+      <column name='[Date]' caption='Rate Date' datatype='date' role='dimension' />
+      <column name='[BaseCurrency]' caption='Base Currency' datatype='string' role='dimension' />
+      <column name='[TargetCurrency]' caption='Target Currency' datatype='string' role='dimension' />
+      <column name='[ExchangeRate]' caption='Exchange Rate' datatype='real' role='measure' />
+      
+      <column name='[Calculation_RateToUSD]' caption='Rate to USD' datatype='real' role='measure'>
+        <calculation formula='IF [TargetCurrency] = "USD" THEN [ExchangeRate] ELSE 1/[ExchangeRate] END' />
+      </column>
+    </datasource>
+    
+    <!-- Snowflake Data Source for Web Analytics -->
+    <datasource name='Web.Snowflake' caption='Web Analytics (Snowflake)'>
+      <connection class='snowflake' server='company.snowflakecomputing.com' database='ANALYTICS' schema='WEB' warehouse='COMPUTE_WH' role='ANALYST'>
+        <relation name='PageViews' table='PAGE_VIEWS' type='table' />
+        <relation name='Sessions' table='SESSIONS' type='table' />
+        <relation name='Conversions' table='CONVERSIONS' type='table' />
+        
+        <!-- Multi-table join -->
+        <relation name='Sessions_PageViews_Join' type='join' join='left'>
+          <clause type='join'>
+            <expression op='='>
+              <expression op='[Sessions].[SESSION_ID]' />
+              <expression op='[PageViews].[SESSION_ID]' />
+            </expression>
+          </clause>
+        </relation>
+        
+        <relation name='Sessions_Conversions_Join' type='join' join='left'>
+          <clause type='join'>
+            <expression op='='>
+              <expression op='[Sessions].[SESSION_ID]' />
+              <expression op='[Conversions].[SESSION_ID]' />
+            </expression>
+          </clause>
+        </relation>
+      </connection>
+      
+      <column name='[SessionID]' caption='Session ID' datatype='string' role='dimension' />
+      <column name='[VisitorID]' caption='Visitor ID' datatype='string' role='dimension' />
+      <column name='[SessionDate]' caption='Session Date' datatype='datetime' role='dimension' />
+      <column name='[Channel]' caption='Channel' datatype='string' role='dimension' />
+      <column name='[Device]' caption='Device Type' datatype='string' role='dimension' />
+      <column name='[PageURL]' caption='Page URL' datatype='string' role='dimension' />
+      <column name='[PageViews]' caption='Page Views' datatype='integer' role='measure' aggregation='sum' />
+      <column name='[SessionDuration]' caption='Session Duration (sec)' datatype='integer' role='measure' aggregation='avg' />
+      <column name='[ConversionValue]' caption='Conversion Value' datatype='real' role='measure' aggregation='sum' />
+      <column name='[IsConverted]' caption='Converted' datatype='boolean' role='dimension' />
+      
+      <column name='[Calculation_ConversionRate]' caption='Conversion Rate' datatype='real' role='measure'>
+        <calculation formula='COUNTD(IF [IsConverted] THEN [SessionID] END) / COUNTD([SessionID])' />
+      </column>
+      
+      <column name='[Calculation_AvgOrderValue]' caption='Avg Conversion Value' datatype='real' role='measure'>
+        <calculation formula='SUM([ConversionValue]) / COUNTD(IF [IsConverted] THEN [SessionID] END)' />
+      </column>
+    </datasource>
+    
+    <!-- BigQuery Data Source for Customer 360 -->
+    <datasource name='Customer360.BigQuery' caption='Customer 360 (BigQuery)'>
+      <connection class='bigquery' project='company-analytics-prod' dataset='customer_360'>
+        <!-- Custom SQL -->
+        <relation name='CustomerMetrics' type='text'>
+          <query>
+            SELECT 
+              c.customer_id,
+              c.customer_name,
+              c.customer_since,
+              c.lifetime_value,
+              c.total_orders,
+              c.avg_order_value,
+              c.last_order_date,
+              c.customer_tier,
+              c.churn_risk_score,
+              s.satisfaction_score,
+              s.nps_score
+            FROM `company-analytics-prod.customer_360.customers` c
+            LEFT JOIN `company-analytics-prod.customer_360.satisfaction` s
+              ON c.customer_id = s.customer_id
+            WHERE c.is_active = TRUE
+          </query>
+        </relation>
+      </connection>
+      
+      <column name='[CustomerID]' caption='Customer ID' datatype='string' role='dimension' />
+      <column name='[CustomerName]' caption='Customer Name' datatype='string' role='dimension' />
+      <column name='[CustomerSince]' caption='Customer Since' datatype='date' role='dimension' />
+      <column name='[LifetimeValue]' caption='Customer LTV' datatype='real' role='measure' aggregation='sum' />
+      <column name='[TotalOrders]' caption='Total Orders' datatype='integer' role='measure' aggregation='sum' />
+      <column name='[AvgOrderValue]' caption='Avg Order Value' datatype='real' role='measure' aggregation='avg' />
+      <column name='[LastOrderDate]' caption='Last Order Date' datatype='date' role='dimension' />
+      <column name='[CustomerTier]' caption='Customer Tier' datatype='string' role='dimension' />
+      <column name='[ChurnRiskScore]' caption='Churn Risk Score' datatype='real' role='measure' aggregation='avg' />
+      <column name='[SatisfactionScore]' caption='Satisfaction Score' datatype='real' role='measure' aggregation='avg' />
+      <column name='[NPSScore]' caption='NPS Score' datatype='real' role='measure' aggregation='avg' />
+      
+      <column name='[Calculation_CustomerAge]' caption='Customer Age (Days)' datatype='integer' role='measure'>
+        <calculation formula='DATEDIFF("day", [CustomerSince], TODAY())' />
+      </column>
+      
+      <column name='[Calculation_DaysSinceOrder]' caption='Days Since Last Order' datatype='integer' role='measure'>
+        <calculation formula='DATEDIFF("day", [LastOrderDate], TODAY())' />
+      </column>
+      
+      <column name='[Calculation_AtRisk]' caption='At Risk Customer' datatype='boolean' role='dimension'>
+        <calculation formula='[ChurnRiskScore] >= 0.7 OR [Calculation_DaysSinceOrder] > 90' />
+      </column>
+    </datasource>
+  </datasources>
+  
+  <worksheets>
+    <worksheet name='Revenue by Region'>
+      <table>
+        <panes>
+          <pane>
+            <mark class='map' />
+          </pane>
+        </panes>
+        <rows>[Orders.SQLServer].[Calculation_Revenue]</rows>
+        <cols>[Orders.SQLServer].[Country]</cols>
+      </table>
+      <datasource-dependencies datasource='Orders.SQLServer'>
+        <column name='[Country]' />
+        <column name='[Region]' />
+        <column name='[Calculation_Revenue]' />
+      </datasource-dependencies>
+    </worksheet>
+    
+    <worksheet name='Budget vs Actual'>
+      <table>
+        <panes>
+          <pane>
+            <mark class='bar'>
+              <encoding attr='color' column='[Budget.Excel].[Calculation_BudgetVsActual]' />
+            </mark>
+          </pane>
+        </panes>
+        <rows>SUM([Budget.Excel].[BudgetAmount])</rows>
+        <rows>SUM([Orders.SQLServer].[Calculation_Revenue])</rows>
+        <cols>[Budget.Excel].[FiscalMonth]</cols>
+      </table>
+      <datasource-dependencies datasource='Budget.Excel'>
+        <column name='[FiscalMonth]' />
+        <column name='[BudgetAmount]' />
+      </datasource-dependencies>
+      <datasource-dependencies datasource='Orders.SQLServer'>
+        <column name='[Calculation_Revenue]' />
+      </datasource-dependencies>
+    </worksheet>
+    
+    <worksheet name='Channel Performance'>
+      <table>
+        <panes>
+          <pane>
+            <mark class='bar'>
+              <encoding attr='size' column='[Web.Snowflake].[Calculation_ConversionRate]' />
+            </mark>
+          </pane>
+        </panes>
+        <rows>[Web.Snowflake].[ConversionValue]</rows>
+        <cols>[Web.Snowflake].[Channel]</cols>
+      </table>
+      <datasource-dependencies datasource='Web.Snowflake'>
+        <column name='[Channel]' />
+        <column name='[ConversionValue]' />
+        <column name='[Calculation_ConversionRate]' />
+      </datasource-dependencies>
+    </worksheet>
+    
+    <worksheet name='Customer Health'>
+      <table>
+        <panes>
+          <pane>
+            <mark class='circle'>
+              <encoding attr='color' column='[Customer360.BigQuery].[CustomerTier]' />
+              <encoding attr='size' column='[Customer360.BigQuery].[LifetimeValue]' />
+            </mark>
+          </pane>
+        </panes>
+        <rows>[Customer360.BigQuery].[ChurnRiskScore]</rows>
+        <cols>[Customer360.BigQuery].[SatisfactionScore]</cols>
+      </table>
+      <datasource-dependencies datasource='Customer360.BigQuery'>
+        <column name='[CustomerTier]' />
+        <column name='[LifetimeValue]' />
+        <column name='[ChurnRiskScore]' />
+        <column name='[SatisfactionScore]' />
+      </datasource-dependencies>
+      <filter column='[Customer360.BigQuery].[Calculation_AtRisk]'>
+        <groupfilter function='member' member='true' />
+      </filter>
+    </worksheet>
+    
+    <worksheet name='Product Margin Analysis'>
+      <table>
+        <panes>
+          <pane>
+            <mark class='bar'>
+              <encoding attr='color' column='[Orders.SQLServer].[Calculation_ProfitMargin]' />
+            </mark>
+          </pane>
+        </panes>
+        <rows>[Orders.SQLServer].[Calculation_Profit]</rows>
+        <cols>[Categories.PostgreSQL].[CategoryName]</cols>
+      </table>
+      <datasource-dependencies datasource='Orders.SQLServer'>
+        <column name='[Calculation_Profit]' />
+        <column name='[Calculation_ProfitMargin]' />
+      </datasource-dependencies>
+      <datasource-dependencies datasource='Categories.PostgreSQL'>
+        <column name='[CategoryName]' />
+      </datasource-dependencies>
+    </worksheet>
+  </worksheets>
+  
+  <dashboards>
+    <dashboard name='Multi-Source Analytics'>
+      <size maxwidth='1920' maxheight='1080' />
+      <zones>
+        <zone name='Revenue by Region' type='worksheet' x='0' y='60' w='640' h='500' />
+        <zone name='Budget vs Actual' type='worksheet' x='640' y='60' w='640' h='500' />
+        <zone name='Channel Performance' type='worksheet' x='1280' y='60' w='640' h='500' />
+        <zone name='Customer Health' type='worksheet' x='0' y='560' w='960' h='500' />
+        <zone name='Product Margin Analysis' type='worksheet' x='960' y='560' w='960' h='500' />
+        <zone type='text' x='800' y='10' w='320' h='40'>
+          <formatted-text>
+            <run bold='true' fontsize='20'>Enterprise Analytics Dashboard</run>
+          </formatted-text>
+        </zone>
+        <zone type='image' x='10' y='10' w='100' h='40'>
+          <formatted-text>
+            <run>company_logo.png</run>
+          </formatted-text>
+        </zone>
+      </zones>
+      <actions>
+        <action name='Filter by Region' type='filter'>
+          <source worksheet='Revenue by Region' />
+          <target worksheet='Budget vs Actual' />
+          <target worksheet='Product Margin Analysis' />
+        </action>
+        <action name='Customer Drill-through' type='url'>
+          <source worksheet='Customer Health' />
+          <target url='https://crm.company.com/customer/&lt;CustomerID&gt;' />
+        </action>
+      </actions>
+    </dashboard>
+  </dashboards>
+</workbook>
