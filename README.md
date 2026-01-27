@@ -252,84 +252,58 @@ tableau-to-powerbi-converter/
 
 ## Sample Workbooks
 
-The `samples/` directory contains example Tableau workbooks for testing and validating the converter:
-
-### Basic Sample
-- **`sample_superstore.twbx`** - The classic Superstore dataset with basic visualizations. Good for initial testing.
-
-### Complex Samples (Advanced)
-
-These complex samples test advanced Tableau features that require careful translation:
-
-| Sample | Complexity | Description |
-|--------|------------|-------------|
-| **`complex_lod_expressions.twb`** | 🔴 HIGH | Tests all LOD expression types: `{FIXED}`, `{INCLUDE}`, `{EXCLUDE}`, nested LOD, and cohort analysis patterns. |
-| **`table_calculations.twb`** | 🔴 VERY HIGH | Comprehensive table calculations: `RUNNING_*`, `WINDOW_*`, `RANK`, `LOOKUP`, `INDEX()`, `PREVIOUS_VALUE()`, and compound table calcs. |
-| **`multi_source_joins.twb`** | 🔴 HIGH | Multiple data source types (SQL Server, PostgreSQL, Snowflake, BigQuery, Excel, CSV) with complex multi-table joins and cross-database references. |
-| **`advanced_dashboard.twb`** | 🔴 HIGH | Complex dashboard layouts with KPI cards, filter actions, highlight actions, URL actions, parameter controls, and dynamic metrics. |
-| **`nested_formulas.twb`** | 🔴 HIGH | Deep nested calculations: string parsing, date manipulation, fiscal calendars, conditional aggregations, risk scoring, and composite key generation. |
-
-### What Each Sample Tests
-
-#### complex_lod_expressions.twb
-- `{FIXED : SUM([Sales])}` - Grand total LOD
-- `{FIXED [Customer ID] : SUM([Sales])}` - Single dimension FIXED
-- `{FIXED [Region], [Category] : SUM([Sales])}` - Multi-dimension FIXED
-- `{INCLUDE [City] : AVG([Sales])}` - INCLUDE LOD
-- `{EXCLUDE [State] : SUM([Sales])}` - EXCLUDE LOD
-- Nested LOD: `{FIXED [Customer ID] : SUM([Sales])} / {FIXED : SUM([Sales])}`
-- Cohort analysis patterns
-
-#### table_calculations.twb
-- `RUNNING_SUM()`, `RUNNING_AVG()`, `RUNNING_COUNT()`
-- `WINDOW_SUM()`, `WINDOW_AVG()` with offsets
-- `RANK()`, `RANK_DENSE()`, `RANK_PERCENTILE()`
-- `INDEX()`, `FIRST()`, `LAST()`, `SIZE()`
-- `LOOKUP()` for period comparisons
-- `PREVIOUS_VALUE()` for recursive calculations
-- Compound: `RUNNING_SUM() / TOTAL()`
-
-#### multi_source_joins.twb
-- SQL Server with 4-table joins (Orders, OrderDetails, Products, Customers)
-- PostgreSQL with category hierarchies
-- Excel budget data blending
-- CSV exchange rates
-- Snowflake web analytics
-- BigQuery custom SQL with Customer 360 data
-- Cross-source calculated fields
-
-#### advanced_dashboard.twb
-- 8 parameters (date range, metrics, targets, chart types)
-- Dynamic date filtering with CASE expressions
-- KPI cards with comparison metrics
-- 10+ worksheets in dashboard layout
-- Filter actions (select/hover triggers)
-- Highlight actions across worksheets
-- URL actions for drill-through
-- Parameter-driven metrics and Top N filters
-
-#### nested_formulas.twb
-- String: `FIND()`, `LEFT()`, `RIGHT()`, `MID()`, `REPLACE()`, email/phone parsing
-- Date: `DATEDIFF()`, `DATEADD()`, `DATETRUNC()`, `DATEPART()`, `DATENAME()`
-- Fiscal calendar with parameterized start month
-- Age/tenure calculations with bucket grouping
-- `CASE WHEN` with 7+ conditions
-- Composite key generation from multiple fields
-- Risk scoring with multi-factor formula
-- YTD/MTD/Prior Year comparisons
-
-### Running Tests with Complex Samples
+### Included Sample
+- **`samples/sample_superstore.twbx`** - The classic Superstore dataset with basic visualizations. Good for initial testing.
 
 ```bash
-# Test LOD translations
-python main.py convert samples/complex_lod_expressions.twb -o output/
-
-# Test table calculations
-python main.py convert samples/table_calculations.twb -o output/
-
-# Full validation report
-python main.py validate samples/nested_formulas.twb
+# Convert the included sample
+python main.py convert samples/sample_superstore.twbx -o output/
 ```
+
+### Tableau Official Samples
+
+For more comprehensive testing, download official Tableau sample workbooks:
+
+| Sample | Download | What it Tests |
+|--------|----------|---------------|
+| **Superstore** | [Tableau Public](https://public.tableau.com/app/resources/sample-data) | Basic charts, filters, hierarchies |
+| **World Indicators** | [Tableau Resources](https://public.tableau.com/app/resources/sample-data) | Maps, parameters, calculated fields |
+| **Regional** | [Tableau Workbooks](https://public.tableau.com/app/resources/sample-data) | Multiple data sources, blending |
+
+### Finding Test Workbooks
+
+1. **Tableau Public Gallery**: Browse [public.tableau.com](https://public.tableau.com/app/discover) and download workbooks
+2. **Your Own Workbooks**: Use your existing `.twbx` or `.twb` files
+3. **Export from Tableau Server**: Download workbooks from your organization's Tableau Server
+
+### Running Conversions
+
+```bash
+# Convert any Tableau workbook
+python main.py convert path/to/your-workbook.twbx -o output/
+
+# Generate a validation report
+python main.py validate path/to/your-workbook.twbx
+
+# Analyze a workbook before conversion
+python main.py analyze path/to/your-workbook.twbx
+```
+
+### Supported Tableau Features
+
+The converter handles these Tableau features:
+
+| Feature | Support Level | Notes |
+|---------|---------------|-------|
+| Basic calculations | Full | SUM, AVG, COUNT, etc. |
+| String functions | Full | LEFT, RIGHT, MID, FIND, etc. |
+| Date functions | Full | DATEADD, DATEDIFF, DATETRUNC, etc. |
+| LOD expressions | Partial | FIXED supported; INCLUDE/EXCLUDE require GenAI |
+| Table calculations | Partial | RUNNING_*, WINDOW_* require GenAI |
+| Parameters | Full | Converted to What-If parameters |
+| Filters | Full | Converted to Power BI slicers |
+| Charts/visuals | Full | Mapped to equivalent Power BI visuals |
+| Dashboards | Partial | Layout preserved; actions require manual setup |
 
 ## Limitations
 
