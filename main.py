@@ -14,6 +14,7 @@ Usage:
 
 import os
 import sys
+import platform
 from pathlib import Path
 from typing import Optional, List
 import click
@@ -22,6 +23,14 @@ from rich.table import Table
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
 from rich.panel import Panel
 from rich.syntax import Syntax
+
+# Fix Windows console encoding issues
+if platform.system() == "Windows":
+    # Force UTF-8 mode on Windows
+    if sys.stdout.encoding != 'utf-8':
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    if sys.stderr.encoding != 'utf-8':
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
 # Add package to path
 sys.path.insert(0, str(Path(__file__).parent))
@@ -34,7 +43,8 @@ from generators.semantic_model_generator import SemanticModelGenerator
 from validation_report import ValidationReportGenerator, ValidationReport
 
 
-console = Console()
+# Use force_terminal=False on Windows to avoid legacy console issues
+console = Console(force_terminal=False if platform.system() == "Windows" else None)
 
 
 class TableauToPowerBIConverter:
