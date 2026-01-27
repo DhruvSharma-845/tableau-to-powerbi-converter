@@ -747,5 +747,79 @@ def workspaces(workspace: Optional[str]):
         raise click.Abort()
 
 
+@cli.command()
+@click.argument('workbook', type=click.Path(exists=True))
+@click.option('-o', '--output', 'output_path', required=True,
+              type=click.Path(), help='Output PBIX file path')
+@click.option('--genai/--no-genai', default=False,
+              help='Use GenAI for formula translation')
+def to_pbix(workbook: str, output_path: str, genai: bool):
+    """Convert a Tableau workbook directly to a PBIX file.
+    
+    This creates a PBIX file that can be opened in Power BI Desktop.
+    No pbi-tools or Power BI Service required.
+    
+    Example:
+        python main.py to-pbix sample.twbx -o output/report.pbix
+    """
+    from generators.pbix_builder import PBIXBuilder
+    
+    console.print(Panel.fit(
+        "[bold blue]Tableau to Power BI Converter[/bold blue]",
+        subtitle="Direct PBIX Generation"
+    ))
+    
+    try:
+        # Ensure output has .pbix extension
+        if not output_path.lower().endswith('.pbix'):
+            output_path = output_path + '.pbix'
+        
+        # Parse Tableau workbook
+        console.print(f"[cyan]Parsing Tableau workbook: {workbook}[/cyan]")
+        parser = TWBXParser(workbook)
+        workbook_model = parser.parse()
+        
+        console.print(f"  Found {len(workbook_model.datasources)} data source(s)")
+        console.print(f"  Found {len(workbook_model.worksheets)} worksheet(s)")
+        console.print(f"  Found {len(workbook_model.dashboards)} dashboard(s)")
+        
+        # Generate semantic model
+        console.print("\n[cyan]Generating Power BI model...[/cyan]")
+        model_generator = SemanticModelGenerator(use_genai=genai)
+        powerbi_report = model_generator.generate(workbook_model)
+        
+        # Map visuals
+        console.print("[cyan]Mapping visualizations...[/cyan]")
+        worksheets_dict = {ws.name: ws for ws in workbook_model.worksheets}
+        
+        for worksheet in workbook_model.worksheets:
+            VisualMapper().map_worksheet(worksheet)
+        
+        # Map dashboards to pages
+        for dashboard in workbook_model.dashboards:
+            page = VisualMapper().map_dashboard_to_page(dashboard, worksheets_dict)
+            powerbi_report.pages.append(page)
+        
+        # Build PBIX file directly
+        console.print("[cyan]Building PBIX file...[/cyan]")
+        builder = PBIXBuilder()
+        result_path = builder.build(powerbi_report, output_path)
+        
+        console.print(f"\n[bold green]Conversion Complete![/bold green]")
+        console.print(f"Output: {result_path}")
+        console.print("\n[dim]Open in Power BI Desktop to view and edit.[/dim]")
+        
+        # Show file size
+        from pathlib import Path
+        file_size = Path(result_path).stat().st_size
+        console.print(f"[dim]File size: {file_size:,} bytes[/dim]")
+        
+    except Exception as e:
+        console.print(f"[bold red]Error: {str(e)}[/bold red]")
+        import traceback
+        console.print(f"[dim]{traceback.format_exc()}[/dim]")
+        raise click.Abort()
+
+
 if __name__ == "__main__":
     cli()
