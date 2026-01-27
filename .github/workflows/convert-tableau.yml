@@ -7,6 +7,14 @@ on:
         description: 'Tableau file to convert (e.g., samples/sample_superstore.twbx)'
         required: true
         default: 'samples/sample_superstore.twbx'
+      output_format:
+        description: 'Output format (pbitools = compile to PBIX, pbip = Microsoft PBIP format)'
+        required: true
+        default: 'pbitools'
+        type: choice
+        options:
+          - pbitools
+          - pbip
 
 jobs:
   convert:
@@ -37,87 +45,124 @@ jobs:
       - name: Analyze Tableau workbook
         run: python main.py analyze "${{ github.event.inputs.tableau_file }}"
       
-      - name: Convert to Power BI PBIP
+      - name: Convert to Power BI (pbi-tools format)
+        if: github.event.inputs.output_format == 'pbitools'
+        run: python main.py convert-pbitools "${{ github.event.inputs.tableau_file }}" -o output/
+      
+      - name: Convert to Power BI (PBIP format)
+        if: github.event.inputs.output_format == 'pbip'
         run: python main.py convert "${{ github.event.inputs.tableau_file }}" -o output/
       
-      - name: List generated files
-        run: |
-          Write-Host "Generated files:"
-          Get-ChildItem output/ -Recurse | ForEach-Object { Write-Host $_.FullName }
-        shell: pwsh
+      - name: Setup .NET for pbi-tools
+        if: github.event.inputs.output_format == 'pbitools'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
       
-      - name: Install Power BI Desktop
+      - name: Download and install pbi-tools
+        if: github.event.inputs.output_format == 'pbitools'
         run: |
-          Write-Host "Installing Power BI Desktop..."
-          # Download Power BI Desktop installer
-          $installerUrl = "https://download.microsoft.com/download/8/8/0/880BCA75-79DD-466A-927D-1ABF1F5454B0/PBIDesktopSetup_x64.exe"
-          $installerPath = "$env:TEMP\PBIDesktopSetup.exe"
+          Write-Host "Downloading pbi-tools..."
           
-          Write-Host "Downloading Power BI Desktop..."
-          Invoke-WebRequest -Uri $installerUrl -OutFile $installerPath -UseBasicParsing
+          # Download the latest pbi-tools release
+          $releasesUrl = "https://api.github.com/repos/pbi-tools/pbi-tools/releases/latest"
+          $release = Invoke-RestMethod -Uri $releasesUrl -Headers @{ 'User-Agent' = 'PowerShell' }
           
-          Write-Host "Installing silently (this may take 5-10 minutes)..."
-          Start-Process -FilePath $installerPath -ArgumentList "-quiet", "-norestart", "ACCEPT_EULA=1" -Wait -NoNewWindow
+          # Find the Core edition ZIP (cross-platform, doesn't need Power BI Desktop)
+          $coreAsset = $release.assets | Where-Object { $_.name -like "*Core*.zip" } | Select-Object -First 1
           
-          Write-Host "Installation complete!"
-        shell: pwsh
-        continue-on-error: true
-        timeout-minutes: 15
-      
-      - name: Convert PBIP to PBIX using Power BI Desktop
-        run: |
-          $pbipFolders = Get-ChildItem output/ -Directory -Filter "*.pbip"
-          
-          if ($pbipFolders.Count -eq 0) {
-            Write-Host "No PBIP folder found, skipping PBIX conversion"
-            exit 0
+          if (-not $coreAsset) {
+            # Fallback to regular Windows version
+            $coreAsset = $release.assets | Where-Object { $_.name -like "*.zip" -and $_.name -notlike "*Core*" } | Select-Object -First 1
           }
           
-          # Find Power BI Desktop
-          $pbiPaths = @(
-            "C:\Program Files\Microsoft Power BI Desktop\bin\PBIDesktop.exe",
-            "${env:ProgramFiles}\Microsoft Power BI Desktop\bin\PBIDesktop.exe",
-            "${env:LOCALAPPDATA}\Microsoft\Power BI Desktop\bin\PBIDesktop.exe"
-          )
+          if ($coreAsset) {
+            Write-Host "Downloading: $($coreAsset.name)"
+            Invoke-WebRequest -Uri $coreAsset.browser_download_url -OutFile "pbi-tools.zip"
+            Expand-Archive -Path "pbi-tools.zip" -DestinationPath "pbi-tools" -Force
+            Write-Host "pbi-tools installed successfully"
+            Get-ChildItem pbi-tools/
+          } else {
+            Write-Host "Could not find pbi-tools release asset"
+            exit 1
+          }
+        shell: pwsh
+      
+      - name: Compile to PBIX using pbi-tools
+        if: github.event.inputs.output_format == 'pbitools'
+        run: |
+          $pbixprojFolders = Get-ChildItem output/ -Directory -Filter "*.pbixproj"
           
-          $pbiExe = $null
-          foreach ($path in $pbiPaths) {
-            if (Test-Path $path) {
-              $pbiExe = $path
-              break
+          if ($pbixprojFolders.Count -eq 0) {
+            Write-Host "No .pbixproj folder found in output/"
+            Get-ChildItem output/ -Recurse | ForEach-Object { Write-Host $_.FullName }
+            exit 1
+          }
+          
+          foreach ($folder in $pbixprojFolders) {
+            $folderPath = $folder.FullName
+            $baseName = $folder.BaseName -replace '\.pbixproj$', ''
+            $pbixPath = "output/$baseName.pbix"
+            
+            Write-Host ""
+            Write-Host "=========================================="
+            Write-Host "Compiling: $folderPath"
+            Write-Host "Output: $pbixPath"
+            Write-Host "=========================================="
+            
+            # Find pbi-tools executable
+            $pbiToolsExe = Get-ChildItem pbi-tools/ -Recurse -Filter "pbi-tools.exe" | Select-Object -First 1
+            
+            if (-not $pbiToolsExe) {
+              $pbiToolsExe = Get-ChildItem pbi-tools/ -Recurse -Filter "pbi-tools.core.exe" | Select-Object -First 1
+            }
+            
+            if ($pbiToolsExe) {
+              Write-Host "Using: $($pbiToolsExe.FullName)"
+              
+              # Run pbi-tools compile
+              & $pbiToolsExe.FullName compile $folderPath -outPath $pbixPath
+              
+              if (Test-Path $pbixPath) {
+                Write-Host "[SUCCESS] Created: $pbixPath"
+                Write-Host "File size: $((Get-Item $pbixPath).Length) bytes"
+              } else {
+                Write-Host "[WARNING] PBIX file was not created"
+              }
+            } else {
+              Write-Host "[ERROR] pbi-tools executable not found"
+              Get-ChildItem pbi-tools/ -Recurse
             }
           }
-          
-          if ($pbiExe) {
-            Write-Host "Found Power BI Desktop at: $pbiExe"
-            Write-Host ""
-            Write-Host "NOTE: Power BI Desktop cannot be automated for PBIX export in headless mode."
-            Write-Host "The PBIP files are ready - open them in Power BI Desktop to save as PBIX."
-          } else {
-            Write-Host "Power BI Desktop not found in expected locations."
-            Write-Host "The PBIP files are ready - download them and open in Power BI Desktop."
-          }
         shell: pwsh
         continue-on-error: true
+      
+      - name: List all output files
+        run: |
+          Write-Host "All generated files:"
+          Get-ChildItem output/ -Recurse | ForEach-Object { 
+            $size = if ($_.PSIsContainer) { "[DIR]" } else { "$($_.Length) bytes" }
+            Write-Host "  $($_.FullName) - $size"
+          }
+        shell: pwsh
       
       - name: Create downloadable packages
         run: |
           $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
           
-          # Create a ZIP of each PBIP folder
-          $pbipFolders = Get-ChildItem output/ -Directory -Filter "*.pbip"
-          
-          foreach ($pbip in $pbipFolders) {
-            $zipName = "$($pbip.BaseName)-pbip-$timestamp.zip"
+          # Create ZIPs of project folders
+          $folders = Get-ChildItem output/ -Directory
+          foreach ($folder in $folders) {
+            $zipName = "$($folder.Name)-$timestamp.zip"
             Write-Host "Creating $zipName..."
-            Compress-Archive -Path $pbip.FullName -DestinationPath "output/$zipName" -Force
+            Compress-Archive -Path $folder.FullName -DestinationPath "output/$zipName" -Force
           }
           
-          # Also create an "all files" zip
-          Compress-Archive -Path output/* -DestinationPath "output/all-conversion-results-$timestamp.zip" -Force
+          # Create an "all files" zip
+          Compress-Archive -Path output/* -DestinationPath "output/all-results-$timestamp.zip" -Force
           
           Write-Host ""
-          Write-Host "Created packages:"
+          Write-Host "Packages created:"
           Get-ChildItem output/*.zip | ForEach-Object { Write-Host "  - $($_.Name)" }
         shell: pwsh
       
@@ -126,6 +171,7 @@ jobs:
         with:
           name: powerbi-conversion-results
           path: |
+            output/*.pbix
             output/*.zip
             output/*_validation_report.md
           retention-days: 30
@@ -137,27 +183,25 @@ jobs:
           Write-Host "                   CONVERSION COMPLETE"
           Write-Host "============================================================"
           Write-Host ""
-          Write-Host "Your Power BI files are ready for download!"
+          
+          # Check if PBIX was created
+          $pbixFiles = Get-ChildItem output/*.pbix -ErrorAction SilentlyContinue
+          
+          if ($pbixFiles) {
+            Write-Host "[SUCCESS] PBIX file(s) created!"
+            foreach ($pbix in $pbixFiles) {
+              Write-Host "  - $($pbix.Name) ($($pbix.Length) bytes)"
+            }
+          } else {
+            Write-Host "[INFO] No PBIX files created."
+            Write-Host "       Download the project folder and open in Power BI Desktop."
+          }
+          
           Write-Host ""
           Write-Host "DOWNLOAD INSTRUCTIONS:"
           Write-Host "----------------------"
-          Write-Host "1. Scroll down to the 'Artifacts' section below"
+          Write-Host "1. Scroll down to the 'Artifacts' section"
           Write-Host "2. Click 'powerbi-conversion-results' to download"
-          Write-Host ""
-          Write-Host "WHAT'S INCLUDED:"
-          Write-Host "----------------"
-          Write-Host "  - *-pbip-*.zip     : Power BI Project (unzip and open .pbip file)"
-          Write-Host "  - *_validation_report.md : Details on what was converted"
-          Write-Host ""
-          Write-Host "TO GET A .PBIX FILE:"
-          Write-Host "--------------------"
-          Write-Host "1. Unzip the -pbip- file"
-          Write-Host "2. Open Power BI Desktop on Windows"
-          Write-Host "3. File -> Open -> select the .pbip file"
-          Write-Host "4. File -> Save As -> choose .pbix format"
-          Write-Host ""
-          Write-Host "NOTE: If you don't have Windows, share the .pbip ZIP with"
-          Write-Host "      a colleague who has Power BI Desktop."
           Write-Host ""
           Write-Host "============================================================"
         shell: pwsh

@@ -292,6 +292,84 @@ def convert(workbook: str, output_dir: str, no_genai: bool,
         raise click.Abort()
 
 
+@cli.command('convert-pbitools')
+@click.argument('workbook', type=click.Path(exists=True))
+@click.option('-o', '--output', 'output_dir', required=True, 
+              type=click.Path(), help='Output directory')
+@click.option('--no-genai', is_flag=True, 
+              help='Disable GenAI for formula translation')
+@click.option('--api-key', envvar='OPENAI_API_KEY', 
+              help='OpenAI API key for GenAI translation')
+def convert_pbitools(workbook: str, output_dir: str, no_genai: bool, 
+                     api_key: Optional[str]):
+    """Convert Tableau workbook to pbi-tools compatible format.
+    
+    This generates output in the pbi-tools PbixProj format, which can then
+    be compiled to PBIX using the pbi-tools CLI:
+    
+        pbi-tools compile <output_folder> -outPath report.pbix
+    """
+    from generators.pbitools_generator import PbiToolsGenerator
+    
+    console.print(Panel.fit(
+        "[bold blue]Tableau to Power BI Converter[/bold blue]",
+        subtitle="pbi-tools Format"
+    ))
+    
+    try:
+        # Parse Tableau workbook
+        console.print(f"[cyan]Parsing Tableau workbook: {workbook}[/cyan]")
+        parser = TWBXParser(workbook)
+        wb = parser.parse()
+        
+        console.print(f"  Found {len(wb.datasources)} data source(s)")
+        console.print(f"  Found {len(wb.worksheets)} worksheet(s)")
+        console.print(f"  Found {len(wb.dashboards)} dashboard(s)")
+        
+        # Generate semantic model to get Power BI report model
+        console.print("\n[cyan]Generating Power BI model...[/cyan]")
+        model_generator = SemanticModelGenerator(
+            use_genai=not no_genai,
+            openai_api_key=api_key
+        )
+        report = model_generator.generate(wb)
+        
+        # Map visuals
+        console.print("[cyan]Mapping visualizations...[/cyan]")
+        visual_mapper = VisualMapper()
+        worksheets_dict = {ws.name: ws for ws in wb.worksheets}
+        
+        for dashboard in wb.dashboards:
+            page = visual_mapper.map_dashboard_to_page(dashboard, worksheets_dict)
+            report.pages.append(page)
+        
+        # If no dashboards, create pages from worksheets
+        if not wb.dashboards:
+            for ws in wb.worksheets:
+                result = visual_mapper.map_worksheet(ws)
+                from models.powerbi_models import PowerBIPage
+                page = PowerBIPage(
+                    name=ws.name.replace(" ", "_"),
+                    display_name=ws.name,
+                    visuals=[result.powerbi_visual]
+                )
+                report.pages.append(page)
+        
+        # Generate pbi-tools format
+        console.print("[cyan]Generating pbi-tools format...[/cyan]")
+        pbitools_generator = PbiToolsGenerator(output_dir)
+        output_path = pbitools_generator.generate(report)
+        
+        console.print(f"\n[bold green]Conversion Complete![/bold green]")
+        console.print(f"Output: {output_path}")
+        console.print(f"\n[bold]To compile to PBIX, run:[/bold]")
+        console.print(f"  [cyan]pbi-tools compile \"{output_path}\" -outPath report.pbix[/cyan]")
+        
+    except Exception as e:
+        console.print(f"[bold red]Error: {str(e)}[/bold red]")
+        raise click.Abort()
+
+
 @cli.command()
 @click.argument('directory', type=click.Path(exists=True))
 @click.option('-o', '--output', 'output_dir', required=True, 
