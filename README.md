@@ -40,12 +40,44 @@ python main.py validate path/to/workbook.twbx
 ## Environment Variables
 
 - `OPENAI_API_KEY`: Required for GenAI-powered formula translation
-- `AZURE_TENANT_ID`: Azure AD tenant ID (required for PBIX conversion)
-- `AZURE_CLIENT_ID`: Azure AD app registration client ID (required for PBIX conversion)
-- `AZURE_CLIENT_SECRET`: Azure AD app client secret (required for service principal auth)
-- `POWERBI_WORKSPACE_ID`: Power BI workspace ID (required for PBIX conversion)
 
-## Converting PBIP to PBIX via Power BI Service
+## Converting to PBIX (Mac/Linux Users)
+
+Since Power BI Desktop only runs on Windows, Mac/Linux users can use **GitHub Actions** (free) to convert PBIP to PBIX in the cloud.
+
+### Option 1: GitHub Actions (Recommended - No Windows Required!)
+
+This repo includes GitHub Action workflows that run on free Windows runners:
+
+1. **Push your code to GitHub:**
+   ```bash
+   git add .
+   git commit -m "Add conversion files"
+   git push
+   ```
+
+2. **Run the conversion workflow:**
+   - Go to your repo on GitHub
+   - Click **Actions** tab
+   - Select **"Convert Tableau to Power BI"**
+   - Click **"Run workflow"**
+   - Enter your Tableau file path (e.g., `samples/sample_superstore.twbx`)
+   - Click **"Run workflow"**
+
+3. **Download your PBIX:**
+   - Wait for the workflow to complete (~2-3 minutes)
+   - Click on the completed run
+   - Scroll down to **"Artifacts"**
+   - Download `powerbi-conversion-results`
+
+The ZIP file contains:
+- `.pbip` folder (Power BI Project format)
+- `.pbix` file (if pbi-tools conversion succeeded)
+- Validation report
+
+### Option 2: Power BI Desktop on Windows
+
+If you have access to Windows:
 
 The converter generates **PBIP** (Power BI Project) format by default. To convert to **PBIX** format, you need to use the Power BI Service REST API. This requires Azure AD setup.
 

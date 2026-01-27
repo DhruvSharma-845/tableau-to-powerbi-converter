@@ -1,0 +1,110 @@
+name: Convert Tableau to Power BI
+
+on:
+  workflow_dispatch:
+    inputs:
+      tableau_file:
+        description: 'Tableau file to convert (e.g., samples/sample_superstore.twbx)'
+        required: true
+        default: 'samples/sample_superstore.twbx'
+
+jobs:
+  convert:
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      
+      - name: Analyze Tableau workbook
+        run: python main.py analyze "${{ github.event.inputs.tableau_file }}"
+      
+      - name: Convert to Power BI PBIP
+        run: python main.py convert "${{ github.event.inputs.tableau_file }}" -o output/
+      
+      - name: List generated files
+        run: |
+          Write-Host "Generated files:"
+          Get-ChildItem output/ -Recurse | ForEach-Object { Write-Host $_.FullName }
+        shell: pwsh
+      
+      - name: Try pbi-tools conversion to PBIX
+        run: |
+          # Find the generated PBIP folder
+          $pbipFolders = Get-ChildItem output/ -Directory -Filter "*.pbip"
+          
+          if ($pbipFolders.Count -eq 0) {
+            Write-Host "No PBIP folder found"
+            exit 0
+          }
+          
+          # Download pbi-tools
+          Write-Host "Downloading pbi-tools..."
+          Invoke-WebRequest -Uri "https://github.com/pbi-tools/pbi-tools/releases/download/1.0.1/pbi-tools.1.0.1.zip" -OutFile "pbi-tools.zip"
+          Expand-Archive -Path "pbi-tools.zip" -DestinationPath "pbi-tools" -Force
+          
+          foreach ($pbip in $pbipFolders) {
+            $pbipPath = $pbip.FullName
+            $baseName = $pbip.BaseName
+            $pbixPath = "output/$baseName.pbix"
+            
+            Write-Host "Attempting to convert $pbipPath to PBIX..."
+            
+            try {
+              & .\pbi-tools\pbi-tools.exe compile $pbipPath -outPath $pbixPath
+              if (Test-Path $pbixPath) {
+                Write-Host "SUCCESS: Created $pbixPath"
+              }
+            } catch {
+              Write-Host "pbi-tools conversion failed: $_"
+            }
+          }
+        shell: pwsh
+        continue-on-error: true
+      
+      - name: Create downloadable ZIP
+        run: |
+          $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+          $zipName = "powerbi-conversion-$timestamp.zip"
+          
+          # Package everything in output folder
+          Compress-Archive -Path output/* -DestinationPath $zipName -Force
+          Move-Item $zipName output/
+          
+          Write-Host "Created: output/$zipName"
+        shell: pwsh
+      
+      - name: Upload conversion results
+        uses: actions/upload-artifact@v4
+        with:
+          name: powerbi-conversion-results
+          path: output/
+          retention-days: 30
+      
+      - name: Conversion Summary
+        run: |
+          Write-Host ""
+          Write-Host "============================================================"
+          Write-Host "                   CONVERSION COMPLETE"
+          Write-Host "============================================================"
+          Write-Host ""
+          Write-Host "Your Power BI files are ready for download!"
+          Write-Host ""
+          Write-Host "Click on 'Summary' in the left sidebar, then scroll down"
+          Write-Host "to 'Artifacts' to download your converted files."
+          Write-Host ""
+          Write-Host "The download includes:"
+          Write-Host "  - .pbip folder (Power BI Project - open in PBI Desktop)"
+          Write-Host "  - .pbix file (if conversion succeeded)"
+          Write-Host "  - Validation report (.md)"
+          Write-Host ""
+          Write-Host "============================================================"
+        shell: pwsh

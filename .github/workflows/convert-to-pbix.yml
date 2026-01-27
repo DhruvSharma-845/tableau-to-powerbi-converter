@@ -1,0 +1,109 @@
+name: Convert PBIP to PBIX
+
+on:
+  workflow_dispatch:
+    inputs:
+      pbip_folder:
+        description: 'Path to PBIP folder (e.g., output/sample_superstore.pbip)'
+        required: true
+        default: 'output/sample_superstore.pbip'
+
+jobs:
+  convert:
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      
+      - name: Convert TWB to PBIP (if needed)
+        run: |
+          # Check if PBIP folder exists, if not, run conversion
+          if (!(Test-Path "${{ github.event.inputs.pbip_folder }}")) {
+            Write-Host "PBIP folder not found, running conversion..."
+            # Extract the twb/twbx name from the pbip path
+            $pbipPath = "${{ github.event.inputs.pbip_folder }}"
+            $baseName = [System.IO.Path]::GetFileNameWithoutExtension($pbipPath)
+            
+            # Try to find matching sample
+            $twbxPath = "samples/$baseName.twbx"
+            $twbPath = "samples/$baseName.twb"
+            
+            if (Test-Path $twbxPath) {
+              python main.py convert $twbxPath -o output/
+            } elseif (Test-Path $twbPath) {
+              python main.py convert $twbPath -o output/
+            } else {
+              Write-Host "No matching Tableau workbook found for $baseName"
+              exit 1
+            }
+          }
+        shell: pwsh
+      
+      - name: Install pbi-tools
+        run: |
+          # Download and install pbi-tools
+          Invoke-WebRequest -Uri "https://github.com/pbi-tools/pbi-tools/releases/download/1.0.1/pbi-tools.1.0.1.zip" -OutFile "pbi-tools.zip"
+          Expand-Archive -Path "pbi-tools.zip" -DestinationPath "pbi-tools"
+        shell: pwsh
+      
+      - name: Convert PBIP to PBIX using pbi-tools
+        run: |
+          $pbipPath = "${{ github.event.inputs.pbip_folder }}"
+          $baseName = [System.IO.Path]::GetFileNameWithoutExtension($pbipPath)
+          $pbixPath = "output/$baseName.pbix"
+          
+          Write-Host "Converting $pbipPath to $pbixPath..."
+          
+          # Use pbi-tools to compile PBIP to PBIX
+          .\pbi-tools\pbi-tools.exe compile $pbipPath -outPath $pbixPath
+          
+          if (Test-Path $pbixPath) {
+            Write-Host "Successfully created: $pbixPath"
+          } else {
+            Write-Host "pbi-tools compilation failed, trying alternative method..."
+            # If pbi-tools fails, we'll just package what we have
+          }
+        shell: pwsh
+        continue-on-error: true
+      
+      - name: Package PBIP as ZIP (fallback)
+        run: |
+          $pbipPath = "${{ github.event.inputs.pbip_folder }}"
+          $baseName = [System.IO.Path]::GetFileNameWithoutExtension($pbipPath)
+          $zipPath = "output/$baseName-pbip.zip"
+          
+          # Create ZIP of PBIP folder for download
+          Compress-Archive -Path $pbipPath -DestinationPath $zipPath -Force
+          Write-Host "Created ZIP package: $zipPath"
+        shell: pwsh
+      
+      - name: Upload PBIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: powerbi-output
+          path: |
+            output/*.pbix
+            output/*-pbip.zip
+            output/*_validation_report.md
+          retention-days: 30
+      
+      - name: Summary
+        run: |
+          Write-Host ""
+          Write-Host "============================================"
+          Write-Host "  Conversion Complete!"
+          Write-Host "============================================"
+          Write-Host ""
+          Write-Host "Download your files from the 'Artifacts' section above."
+          Write-Host ""
+          Get-ChildItem output/ -Recurse | Where-Object { $_.Extension -in ".pbix", ".zip", ".md" }
+        shell: pwsh
