@@ -111,18 +111,33 @@ class SemanticModelGenerator:
     
     def _create_table_from_datasource(self, ds: TableauDataSource) -> PowerBITable:
         """Create a Power BI table from a Tableau data source."""
+        # Sanitize table name for Power BI compatibility
+        table_name = self._sanitize_name(ds.display_name)
+        
         table = PowerBITable(
-            name=ds.display_name,
+            name=table_name,
         )
         
-        # Add columns
+        # Add columns with proper formatting
         for col in ds.columns:
             pbi_col = PowerBIColumn(
-                name=col.display_name,
+                name=self._sanitize_name(col.display_name),
                 source_column=col.name,
                 data_type=self.DATATYPE_MAP.get(col.datatype, PowerBIDataType.STRING),
                 is_hidden=col.hidden,
             )
+            
+            # Add format strings based on data type
+            if col.datatype in [DataType.REAL, DataType.INTEGER]:
+                if col.role == "measure":
+                    pbi_col.format_string = "#,##0.00"
+            elif col.datatype in [DataType.DATE, DataType.DATETIME]:
+                pbi_col.format_string = "yyyy-MM-dd"
+            
+            # Set summarization for measures
+            if col.role == "measure":
+                pbi_col.summarize_by = "sum"
+            
             table.columns.append(pbi_col)
         
         # Translate calculated fields to measures
@@ -131,11 +146,34 @@ class SemanticModelGenerator:
             self.translation_results.append((calc_field, translation))
             
             measure = self.formula_translator.to_measure(
-                calc_field, translation, ds.display_name
+                calc_field, translation, table_name
             )
+            
+            # Add display folder for organization
+            if calc_field.is_lod:
+                measure.display_folder = "LOD Calculations"
+            elif calc_field.is_table_calc:
+                measure.display_folder = "Table Calculations"
+            else:
+                measure.display_folder = "Calculated Measures"
+            
             table.measures.append(measure)
         
         return table
+    
+    def _sanitize_name(self, name: str) -> str:
+        """Sanitize a name for Power BI compatibility."""
+        if not name:
+            return "Unnamed"
+        # Remove or replace invalid characters
+        invalid_chars = '<>:"/\\|?*[]'
+        result = name
+        for char in invalid_chars:
+            result = result.replace(char, '_')
+        # Clean up multiple underscores
+        while '__' in result:
+            result = result.replace('__', '_')
+        return result.strip('_').strip()
     
     def _create_datasource(self, ds: TableauDataSource) -> PowerBIDataSource:
         """Create a Power BI data source from Tableau connection."""

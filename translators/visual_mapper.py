@@ -10,11 +10,13 @@ from dataclasses import dataclass, field
 from enum import Enum
 
 from models.tableau_models import (
-    TableauWorksheet, TableauMark, MarkType, FieldMapping, AggregationType
+    TableauWorksheet, TableauMark, MarkType, FieldMapping, AggregationType,
+    TableauDashboard
 )
 from models.powerbi_models import (
     PowerBIVisual, PowerBIVisualType, VisualDataField, PowerBIPage
 )
+from translators.custom_visuals import custom_visual_registry, get_recommended_visual
 
 
 class MappingConfidence(Enum):
@@ -40,6 +42,7 @@ class VisualMappingResult:
 class VisualMapper:
     """
     Maps Tableau visualizations to Power BI visuals.
+    Enhanced with better chart type detection and comprehensive visual mappings.
     """
     
     # Mark type to visual type mapping
@@ -58,12 +61,25 @@ class VisualMapper:
         MarkType.AUTOMATIC: (PowerBIVisualType.CLUSTERED_COLUMN, MappingConfidence.GOOD),
     }
     
-    # Custom visual recommendations
+    # Extended visual detection based on worksheet name patterns
+    VISUAL_NAME_PATTERNS: Dict[str, PowerBIVisualType] = {
+        "waterfall": PowerBIVisualType.CLUSTERED_COLUMN,  # Waterfall pattern
+        "funnel": PowerBIVisualType.CLUSTERED_BAR,  # Funnel pattern  
+        "donut": PowerBIVisualType.DONUT_CHART,
+        "treemap": PowerBIVisualType.TREEMAP,
+        "scatter": PowerBIVisualType.SCATTER_CHART,
+        "bubble": PowerBIVisualType.SCATTER_CHART,
+        "heatmap": PowerBIVisualType.MATRIX,
+        "kpi": PowerBIVisualType.KPI,
+        "gauge": PowerBIVisualType.GAUGE,
+    }
+    
+    # Custom visual recommendations (using custom_visuals module)
     CUSTOM_VISUALS: Dict[MarkType, Dict[str, str]] = {
         MarkType.GANTT: {
             "visual_id": "GanttChartbyMAQ",
             "name": "Gantt Chart by MAQ Software",
-            "url": "https://appsource.microsoft.com/en-us/product/power-bi-visuals/maborosoft.ganttbymaq"
+            "url": "https://appsource.microsoft.com/en-us/product/power-bi-visuals/wa104380765"
         },
     }
     
@@ -149,13 +165,20 @@ class VisualMapper:
                             initial_type: PowerBIVisualType,
                             notes: List[str]) -> PowerBIVisualType:
         """
-        Refine visual type based on data configuration.
+        Refine visual type based on data configuration and worksheet name patterns.
+        Enhanced with better chart type detection.
         """
         rows = worksheet.rows
         cols = worksheet.columns
         has_color = worksheet.color_field is not None
+        has_size = worksheet.size_field is not None
+        ws_name_lower = (worksheet.name or "").lower()
         
-        # Check for specific patterns
+        # First check worksheet name for visual type hints
+        for pattern, visual_type in self.VISUAL_NAME_PATTERNS.items():
+            if pattern in ws_name_lower:
+                notes.append(f"Visual type inferred from worksheet name pattern: {pattern}")
+                return visual_type
         
         # Check for KPI-like single value FIRST (before bar chart logic)
         if len(rows) == 0 and len(cols) == 1 and cols[0].aggregation != AggregationType.NONE:
@@ -165,6 +188,16 @@ class VisualMapper:
         if len(cols) == 0 and len(rows) == 1 and rows[0].aggregation != AggregationType.NONE:
             return PowerBIVisualType.CARD
         
+        # Detect bubble chart (scatter with size)
+        if initial_type == PowerBIVisualType.SCATTER_CHART and has_size:
+            notes.append("Size field detected - creating bubble chart")
+            return PowerBIVisualType.SCATTER_CHART  # Scatter with size = bubble
+        
+        # Detect line chart with area (stacked area)
+        if initial_type == PowerBIVisualType.AREA_CHART and has_color:
+            notes.append("Color field with area - creating stacked area")
+            return PowerBIVisualType.STACKED_AREA
+        
         # Bar chart orientation
         if initial_type in [PowerBIVisualType.CLUSTERED_BAR, PowerBIVisualType.CLUSTERED_COLUMN]:
             # In Tableau, bars on rows means horizontal (bar), bars on columns means vertical (column)
@@ -172,15 +205,20 @@ class VisualMapper:
                 m.aggregation != AggregationType.NONE 
                 for m in cols
             )
+            
+            # Check for stacked chart pattern
+            if has_color:
+                if has_measure_on_cols:
+                    notes.append("Color field detected - using stacked column chart")
+                    return PowerBIVisualType.STACKED_COLUMN
+                else:
+                    notes.append("Color field detected - using stacked bar chart")
+                    return PowerBIVisualType.STACKED_BAR
+            
             if has_measure_on_cols:
                 return PowerBIVisualType.CLUSTERED_COLUMN
             else:
                 return PowerBIVisualType.CLUSTERED_BAR
-        
-        # Stacked vs clustered
-        if has_color and initial_type == PowerBIVisualType.CLUSTERED_BAR:
-            # Color often indicates stacking in Tableau
-            notes.append("Color field detected - may want stacked chart")
         
         # Check for matrix layout
         if len(rows) > 1 and len(cols) > 1:
@@ -192,6 +230,12 @@ class VisualMapper:
             if has_dim_on_both:
                 notes.append("Matrix/pivot layout detected")
                 return PowerBIVisualType.MATRIX
+        
+        # Check for combo chart pattern (line + bar)
+        if initial_type == PowerBIVisualType.LINE_CHART:
+            num_measures = sum(1 for m in rows + cols if m.aggregation != AggregationType.NONE)
+            if num_measures > 1:
+                notes.append("Multiple measures detected - consider combo chart")
         
         return initial_type
     

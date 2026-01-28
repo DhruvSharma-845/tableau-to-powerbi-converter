@@ -15,6 +15,10 @@ from enum import Enum
 from parsers.formula_parser import TableauFormulaParser, ASTNode
 from models.tableau_models import TableauCalculatedField, CalculationType
 from models.powerbi_models import PowerBIMeasure
+from translators.extended_mappings import (
+    get_all_mappings, get_mapping, get_direct_mappings,
+    LOD_PATTERNS, TABLE_CALC_MAPPINGS, TranslationComplexity
+)
 
 
 class TranslationConfidence(Enum):
@@ -297,11 +301,26 @@ class FormulaTranslator:
         return f"/* Unknown node type: {node.node_type} */"
     
     def _translate_function(self, node: ASTNode, notes: List[str]) -> str:
-        """Translate a function call to DAX."""
+        """Translate a function call to DAX using extended mappings."""
         func_name = node.value.upper()
         args = [self._ast_to_dax(child, notes) for child in node.children]
         
-        # Direct mapping
+        # First check extended mappings for comprehensive function support
+        extended_mapping = get_mapping(func_name)
+        if extended_mapping:
+            if extended_mapping.complexity == TranslationComplexity.DIRECT:
+                return f"{extended_mapping.dax_equivalent}({', '.join(args)})"
+            elif extended_mapping.complexity == TranslationComplexity.SIMPLE:
+                # Handle simple transformations
+                dax_equiv = extended_mapping.dax_equivalent
+                if "{0}" in dax_equiv:
+                    return dax_equiv.format(*args) if args else dax_equiv
+                return f"{dax_equiv}({', '.join(args)})"
+            elif extended_mapping.complexity == TranslationComplexity.MANUAL:
+                notes.append(extended_mapping.notes)
+                return f"/* {func_name} - {extended_mapping.notes} */"
+        
+        # Direct mapping from local function map
         if func_name in self.FUNCTION_MAP:
             dax_func = self.FUNCTION_MAP[func_name]
             
@@ -442,26 +461,28 @@ class FormulaTranslator:
         
         return f"SWITCH({case_dax}, {', '.join(pairs)}, {else_dax})"
     
-    def _build_lod_dax(self, lod_type: str, dimensions: List[str], inner_expr: str) -> str:
-        """Build DAX expression for LOD calculation."""
+    def _build_lod_dax(self, lod_type: str, dimensions: List[str], inner_expr: str, table_name: str = "'Table'") -> str:
+        """Build DAX expression for LOD calculation using pattern templates."""
+        # Use patterns from extended_mappings for consistency
         if lod_type == "FIXED":
             if dimensions:
-                dim_list = ", ".join(f"'{d}'" for d in dimensions)
-                return f"CALCULATE({inner_expr}, ALLEXCEPT(Table, {dim_list}))"
+                dim_list = ", ".join(f"{table_name}[{d}]" for d in dimensions)
+                return f"CALCULATE({inner_expr}, ALLEXCEPT({table_name}, {dim_list}))"
             else:
                 # FIXED with no dimensions = grand total
-                return f"CALCULATE({inner_expr}, ALL(Table))"
+                return f"CALCULATE({inner_expr}, ALL({table_name}))"
         
         elif lod_type == "INCLUDE":
             # INCLUDE adds dimensions to current context
             if dimensions:
-                return f"AVERAGEX(SUMMARIZE(Table, {', '.join(dimensions)}, \"_val\", {inner_expr}), [_val])"
+                dim_refs = ", ".join(f"{table_name}[{d}]" for d in dimensions)
+                return f"AVERAGEX(SUMMARIZE({table_name}, {dim_refs}, \"_val\", {inner_expr}), [_val])"
             return inner_expr
         
         elif lod_type == "EXCLUDE":
             # EXCLUDE removes dimensions from current context
             if dimensions:
-                dim_list = ", ".join(f"'{d}'" for d in dimensions)
+                dim_list = ", ".join(f"{table_name}[{d}]" for d in dimensions)
                 return f"CALCULATE({inner_expr}, REMOVEFILTERS({dim_list}))"
             return inner_expr
         

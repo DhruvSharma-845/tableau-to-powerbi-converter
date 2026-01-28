@@ -40,8 +40,17 @@ class PBIXBuilder:
     def __init__(self):
         self.report_id = str(uuid.uuid4())
         
-    def build(self, report: PowerBIReport, output_path: str, include_model: bool = False) -> str:
-        """Build a PBIX file from a PowerBIReport model."""
+    def build(self, report: PowerBIReport, output_path: str, include_model: bool = True) -> str:
+        """Build a PBIX file from a PowerBIReport model.
+        
+        Args:
+            report: PowerBIReport model with pages, visuals, tables, and measures
+            output_path: Path for the output PBIX file
+            include_model: Whether to include data model (default True for higher accuracy)
+            
+        Returns:
+            Path to the created PBIX file
+        """
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
         
@@ -61,14 +70,14 @@ class PBIXBuilder:
             # Linguistic schema
             pbix.writestr('Report/LinguisticSchema', self._generate_linguistic_schema())
             
-            # DataMashup - minimal but required for Power BI Service
-            pbix.writestr('DataMashup', self._generate_data_mashup())
+            # DataMashup with M queries for tables
+            pbix.writestr('DataMashup', self._generate_data_mashup_with_tables(report))
             
             # Connections
             pbix.writestr('Connections', self._generate_connections(report))
             
-            # Only include model if requested and tables exist
-            if include_model and report.tables:
+            # Always include model if tables exist for better compatibility
+            if report.tables:
                 pbix.writestr('DataModelSchema', self._generate_data_model_schema(report))
         
         return str(output_path)
@@ -151,6 +160,98 @@ class PBIXBuilder:
             mashup.writestr('Formulas/Mashup.qry', b'')
             
         return mashup_buffer.getvalue()
+    
+    def _generate_data_mashup_with_tables(self, report: PowerBIReport) -> bytes:
+        """
+        Generate DataMashup with M queries for tables.
+        
+        Creates M expressions for each table in the report.
+        """
+        import io
+        
+        mashup_buffer = io.BytesIO()
+        with zipfile.ZipFile(mashup_buffer, 'w', zipfile.ZIP_DEFLATED) as mashup:
+            # Config
+            config = '''<Config xmlns="http://schemas.datacontract.org/2004/07/Microsoft.Data.Mashup">
+  <ConfigElement Name="CurrentCulture">en-US</ConfigElement>
+  <ConfigElement Name="FastCombine">true</ConfigElement>
+</Config>'''
+            mashup.writestr('Config/Config.xml', config)
+            
+            # Content types for mashup
+            content_types = '''<?xml version="1.0" encoding="utf-8"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Override PartName="/Config/Config.xml" ContentType="text/xml" />
+  <Override PartName="/Formulas/Section1.m" ContentType="text/x-m" />
+  <Override PartName="/Formulas/Mashup.qry" ContentType="application/octet-stream" />
+</Types>'''
+            mashup.writestr('[Content_Types].xml', content_types)
+            
+            # Generate M queries for tables
+            m_queries = ['section Section1;', '']
+            for table in report.tables:
+                table_name = self._sanitize_m_identifier(table.name)
+                m_query = self._generate_table_m_query(table)
+                m_queries.append(f'shared {table_name} = {m_query};')
+                m_queries.append('')
+            
+            mashup.writestr('Formulas/Section1.m', '\n'.join(m_queries))
+            
+            # Empty binary mashup query
+            mashup.writestr('Formulas/Mashup.qry', b'')
+            
+        return mashup_buffer.getvalue()
+    
+    def _sanitize_m_identifier(self, name: str) -> str:
+        """Sanitize a name for use as an M identifier."""
+        # Replace spaces with underscores, remove special characters
+        result = ''.join(c if c.isalnum() or c == '_' else '_' for c in name)
+        # Ensure it doesn't start with a number
+        if result and result[0].isdigit():
+            result = '_' + result
+        return result or 'Table'
+    
+    def _generate_table_m_query(self, table) -> str:
+        """Generate M query for a table."""
+        # Build column type definitions
+        if table.columns:
+            col_defs = []
+            for col in table.columns:
+                m_type = self._pbi_type_to_m_type(col.data_type)
+                col_name = col.name.replace('"', '""')
+                col_defs.append(f'#"{col_name}" = {m_type}')
+            
+            type_table = 'type table [' + ', '.join(col_defs) + ']'
+            return f'''let
+    Source = #table(
+        {type_table},
+        {{}}
+    )
+in
+    Source'''
+        else:
+            return '''let
+    Source = #table(
+        type table [Column1 = text],
+        {}
+    )
+in
+    Source'''
+    
+    def _pbi_type_to_m_type(self, data_type) -> str:
+        """Convert Power BI data type to M type."""
+        if hasattr(data_type, 'value'):
+            data_type = data_type.value
+        type_map = {
+            'string': 'type text',
+            'int64': 'Int64.Type',
+            'double': 'type number',
+            'boolean': 'type logical',
+            'datetime': 'type datetime',
+            'dateTime': 'type datetime',
+            'decimal': 'type number',
+        }
+        return type_map.get(str(data_type).lower(), 'type text')
     
     def _normalize_coordinate(self, value: float, max_tableau: float = 100000, max_pbi: float = 1280) -> float:
         """Normalize Tableau coordinates to Power BI scale."""
@@ -334,7 +435,7 @@ class PBIXBuilder:
         return json.dumps(connections, ensure_ascii=False)
     
     def _generate_data_model_schema(self, report: PowerBIReport) -> str:
-        """Generate DataModelSchema (TOM model as JSON)."""
+        """Generate DataModelSchema (TOM model as JSON) with proper measures."""
         if not report.tables:
             return "{}"
         
@@ -342,23 +443,65 @@ class PBIXBuilder:
         for table in report.tables:
             columns = []
             for col in table.columns:
-                columns.append({
+                col_def = {
                     "name": col.name,
                     "dataType": self._map_data_type(col.data_type),
-                    "sourceColumn": col.name,
-                    "isHidden": col.is_hidden
-                })
+                    "sourceColumn": col.source_column or col.name,
+                    "isHidden": col.is_hidden,
+                    "lineageTag": str(uuid.uuid4())
+                }
+                
+                # Add format string if specified
+                if col.format_string:
+                    col_def["formatString"] = col.format_string
+                
+                # Add summarization
+                if col.summarize_by:
+                    col_def["summarizeBy"] = col.summarize_by
+                    
+                columns.append(col_def)
             
             measures = []
             for measure in table.measures:
-                measures.append({
+                measure_def = {
                     "name": measure.name,
                     "expression": measure.expression or "0",
-                    "isHidden": measure.is_hidden
-                })
+                    "isHidden": measure.is_hidden,
+                    "lineageTag": str(uuid.uuid4())
+                }
+                
+                # Add description with translation notes
+                if measure.description or measure.translation_notes:
+                    desc_parts = []
+                    if measure.description:
+                        desc_parts.append(measure.description)
+                    if measure.translation_notes:
+                        desc_parts.append("Notes: " + "; ".join(measure.translation_notes))
+                    measure_def["description"] = " | ".join(desc_parts)
+                
+                # Add display folder for organization
+                if measure.display_folder:
+                    measure_def["displayFolder"] = measure.display_folder
+                
+                # Add format string
+                if measure.format_string:
+                    measure_def["formatString"] = measure.format_string
+                
+                # Add annotations for source tracking
+                if measure.source_tableau_field:
+                    measure_def["annotations"] = [{
+                        "name": "SourceTableauField",
+                        "value": measure.source_tableau_field
+                    }]
+                    
+                measures.append(measure_def)
+            
+            # Build partition expression
+            m_expression = self._generate_table_m_query(table)
             
             table_def = {
                 "name": table.name,
+                "lineageTag": str(uuid.uuid4()),
                 "columns": columns,
                 "measures": measures,
                 "partitions": [{
@@ -366,11 +509,32 @@ class PBIXBuilder:
                     "mode": "import",
                     "source": {
                         "type": "m",
-                        "expression": [f'let Source = #table({{"Column1"}}, {{}}) in Source']
+                        "expression": m_expression.split('\n')
                     }
                 }]
             }
+            
+            # Add annotations for source tracking
+            if hasattr(table, 'source_type') and table.source_type:
+                table_def["annotations"] = [{
+                    "name": "SourceType",
+                    "value": table.source_type
+                }]
+            
             tables.append(table_def)
+        
+        # Build relationships
+        relationships = []
+        for rel in report.relationships:
+            relationships.append({
+                "name": rel.name,
+                "fromTable": rel.from_table,
+                "fromColumn": rel.from_column,
+                "toTable": rel.to_table,
+                "toColumn": rel.to_column,
+                "isActive": rel.is_active,
+                "crossFilteringBehavior": rel.cross_filtering_behavior
+            })
         
         schema = {
             "name": report.name or "SemanticModel",
@@ -378,9 +542,13 @@ class PBIXBuilder:
             "model": {
                 "culture": "en-US",
                 "dataAccessOptions": {"legacyRedirects": True, "returnErrorValuesAsNull": True},
+                "defaultPowerBIDataSourceVersion": "powerBI_V3",
                 "tables": tables,
-                "relationships": [],
-                "annotations": []
+                "relationships": relationships,
+                "annotations": [
+                    {"name": "ConverterVersion", "value": "1.0.0"},
+                    {"name": "SourceTool", "value": "Tableau-to-PowerBI-Converter"}
+                ]
             }
         }
         
