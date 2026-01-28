@@ -1,45 +1,88 @@
 # Tableau to Power BI Converter
 
-A Python tool for converting Tableau workbooks (.twbx/.twb) to Power BI reports using the PBIR format.
+A comprehensive Python tool for converting Tableau workbooks (.twbx/.twb) to Power BI reports with the highest possible accuracy. Runs on **macOS**, Linux, and Windows.
 
 ## Features
 
-- Parse Tableau workbook files (TWBX/TWB)
-- Extract data sources, calculated fields, visualizations, and dashboards
-- Translate Tableau formulas to DAX using GenAI
-- Generate Power BI PBIR format output
-- Batch conversion support for enterprise migrations
-- Validation reports for translation accuracy
+- **High-accuracy conversion** of Tableau workbooks to Power BI
+- **Multiple output formats**: PBIP (Power BI Project), PBIX (direct), PBIR
+- **Formula translation**: Comprehensive Tableau-to-DAX mapping with 100+ function mappings
+- **Visual mapping**: Intelligent chart type detection and conversion
+- **Data model generation**: Proper columns, measures, and relationships
+- **Validation reports**: Detailed conversion quality reports
+- **Batch conversion**: Convert multiple workbooks at once
+- **GenAI support**: Optional OpenAI integration for complex LOD/table calculations
 
-## Installation
+## Quick Start (macOS)
 
-```bash
-pip install -r requirements.txt
-```
-
-## Usage
-
-### Single File Conversion
+### 1. Installation
 
 ```bash
-python main.py convert path/to/workbook.twbx -o output/
+# Clone the repository
+git clone https://github.com/your-repo/tableau-to-powerbi-converter.git
+cd tableau-to-powerbi-converter
+
+# Install dependencies
+pip3 install -r requirements.txt
 ```
+
+### 2. Convert to PBIX (Recommended)
+
+```bash
+# Convert Tableau workbook directly to PBIX
+python3 main.py to-pbix path/to/workbook.twbx -o output/report.pbix
+
+# Copy to Windows VDI to test in Power BI Desktop
+```
+
+### 3. Convert to PBIP (Power BI Project)
+
+```bash
+# Convert to PBIP format (more granular control)
+python3 main.py convert path/to/workbook.twbx -o output/
+```
+
+## Command Reference
+
+### Analyze a Workbook
+
+```bash
+python3 main.py analyze path/to/workbook.twbx
+```
+
+Shows workbook complexity, calculated fields, and conversion difficulty assessment.
+
+### Convert to PBIX (Direct)
+
+```bash
+python3 main.py to-pbix path/to/workbook.twbx -o output/report.pbix
+```
+
+Creates a PBIX file that can be opened directly in Power BI Desktop.
+
+### Convert to PBIP/PBIR Format
+
+```bash
+python3 main.py convert path/to/workbook.twbx -o output/
+```
+
+Creates a PBIP project folder with the full Power BI report structure.
 
 ### Batch Conversion
 
 ```bash
-python main.py batch path/to/workbooks/ -o output/
+python3 main.py batch path/to/workbooks/ -o output/ --pattern "*.twbx"
 ```
 
 ### Generate Validation Report
 
 ```bash
-python main.py validate path/to/workbook.twbx
+python3 main.py validate path/to/workbook.twbx
 ```
 
 ## Environment Variables
 
-- `OPENAI_API_KEY`: Required for GenAI-powered formula translation
+- `OPENAI_API_KEY`: Optional. Enables GenAI-powered formula translation for complex LOD expressions and table calculations
 
 ## Quick Start: Cloud Mode (No Windows Required!)
 

@@ -129,7 +129,7 @@ class TestWorksheetMapping:
     def test_kpi_card_detection(self, mapper):
         # Single measure, no dimensions = Card visual
         worksheet = TableauWorksheet(
-            name="Total Sales KPI",
+            name="Total Sales Summary",
             mark=TableauMark(mark_type=MarkType.AUTOMATIC),
             rows=[],
             columns=[FieldMapping(field="Sales", shelf="cols", aggregation=AggregationType.SUM)]
