@@ -41,6 +41,46 @@ python main.py validate path/to/workbook.twbx
 
 - `OPENAI_API_KEY`: Required for GenAI-powered formula translation
 
+## Quick Start: Cloud Mode (No Windows Required!)
+
+Convert Tableau to Power BI directly from Mac/Linux using the REST API:
+
+```bash
+# Set your Azure credentials
+export AZURE_CLIENT_ID="c6688a3a-ce2f-46b7-8fe0-70add0f2530f"
+export AZURE_TENANT_ID="0f50c60a-139b-4a49-b9a0-1c7e881236d6"
+export AZURE_CLIENT_SECRET="your-client-secret-here"
+export POWERBI_WORKSPACE_ID="your-workspace-id-here"
+
+# Convert directly to Power BI Service
+python3 main.py cloud samples/sample_superstore.twbx
+```
+
+This creates a dataset directly in Power BI Service - no Windows or PBIX file needed!
+
+### Quick Setup
+
+1. Edit `setup_powerbi.sh` with your credentials:
+   ```bash
+   # Add your client secret and workspace ID
+   nano setup_powerbi.sh
+   ```
+
+2. Source and run:
+   ```bash
+   source setup_powerbi.sh
+   python3 main.py cloud samples/sample_superstore.twbx
+   ```
+
+### Prerequisites for Cloud Mode
+
+1. **Azure AD App** with Power BI API permissions
+2. **Power BI Pro license** (free trial available)
+3. **Service Principal** enabled in Power BI Admin Portal
+4. **Workspace** with the service principal added as Admin/Member
+
+See detailed setup below in "Converting to PBIX" section.
+
 ## Converting to PBIX (Mac/Linux Users)
 
 Since Power BI Desktop only runs on Windows, Mac/Linux users can use **GitHub Actions** (free) to convert PBIP to PBIX in the cloud.
