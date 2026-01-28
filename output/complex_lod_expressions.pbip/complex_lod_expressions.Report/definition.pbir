@@ -1,0 +1,8 @@
+{
+  "version": "1.0",
+  "datasetReference": {
+    "byPath": {
+      "path": "../complex_lod_expressions.SemanticModel"
+    }
+  }
+}

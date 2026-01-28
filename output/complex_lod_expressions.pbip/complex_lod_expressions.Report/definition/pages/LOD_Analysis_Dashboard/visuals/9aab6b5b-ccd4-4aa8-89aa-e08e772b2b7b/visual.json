@@ -1,0 +1,126 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visual/1.0.0/schema.json",
+  "name": "9aab6b5b-ccd4-4aa8-89aa-e08e772b2b7b",
+  "visualType": "clusteredBarChart",
+  "position": {
+    "x": 700.0,
+    "y": 450.0,
+    "z": 0,
+    "width": 700.0,
+    "height": 450.0
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "projections": {
+      "Category": [
+        {
+          "queryRef": "Data.Sales.SalesData",
+          "active": true
+        },
+        {
+          "queryRef": "Data.Calculation_CustomerVsTotal",
+          "active": true
+        },
+        {
+          "queryRef": "Data.Sales.SalesData",
+          "active": true
+        },
+        {
+          "queryRef": "Data.Customer Name",
+          "active": true
+        }
+      ]
+    },
+    "prototypeQuery": {
+      "Version": 2,
+      "From": [
+        {
+          "Name": "d",
+          "Entity": "Data",
+          "Type": 0
+        }
+      ],
+      "Select": [
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Sales.SalesData"
+          },
+          "Name": "Data.Sales.SalesData"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Calculation_CustomerVsTotal"
+          },
+          "Name": "Data.Calculation_CustomerVsTotal"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Sales.SalesData"
+          },
+          "Name": "Data.Sales.SalesData"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Customer Name"
+          },
+          "Name": "Data.Customer Name"
+        }
+      ]
+    }
+  },
+  "visualContainerObjects": {
+    "title": [
+      {
+        "properties": {
+          "text": {
+            "expr": {
+              "Literal": {
+                "Value": "'Customer Contribution'"
+              }
+            }
+          },
+          "show": {
+            "expr": {
+              "Literal": {
+                "Value": "true"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "filters": [
+    {
+      "target": {
+        "table": "Data",
+        "column": "Sales.SalesData].[Calculation_TopCustomerFlag"
+      },
+      "filterType": "categorical",
+      "operator": "In",
+      "values": [
+        "true"
+      ]
+    }
+  ]
+}

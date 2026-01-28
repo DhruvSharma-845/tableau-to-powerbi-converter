@@ -1,0 +1,178 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visual/1.0.0/schema.json",
+  "name": "1b596486-1bc3-4e0e-a466-bd8c4a5df6f3",
+  "visualType": "clusteredBarChart",
+  "position": {
+    "x": 61600.0,
+    "y": 72375.0,
+    "z": 0,
+    "width": 33300.0,
+    "height": 24000.0
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "projections": {
+      "Category": [
+        {
+          "queryRef": "Data.federated.14vgqpy1xbzasr1g68vql17hz4ef",
+          "active": true
+        },
+        {
+          "queryRef": "Data.none:Product Sub-Category:nk",
+          "active": true
+        },
+        {
+          "queryRef": "Data.federated.14vgqpy1xbzasr1g68vql17hz4ef",
+          "active": true
+        },
+        {
+          "queryRef": "Data.Latitude (generated)",
+          "active": true
+        },
+        {
+          "queryRef": "Data.federated.14vgqpy1xbzasr1g68vql17hz4ef",
+          "active": true
+        },
+        {
+          "queryRef": "Data.Longitude (generated)",
+          "active": true
+        }
+      ]
+    },
+    "prototypeQuery": {
+      "Version": 2,
+      "From": [
+        {
+          "Name": "d",
+          "Entity": "Data",
+          "Type": 0
+        }
+      ],
+      "Select": [
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "federated.14vgqpy1xbzasr1g68vql17hz4ef"
+          },
+          "Name": "Data.federated.14vgqpy1xbzasr1g68vql17hz4ef"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "none:Product Sub-Category:nk"
+          },
+          "Name": "Data.none:Product Sub-Category:nk"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "federated.14vgqpy1xbzasr1g68vql17hz4ef"
+          },
+          "Name": "Data.federated.14vgqpy1xbzasr1g68vql17hz4ef"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Latitude (generated)"
+          },
+          "Name": "Data.Latitude (generated)"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "federated.14vgqpy1xbzasr1g68vql17hz4ef"
+          },
+          "Name": "Data.federated.14vgqpy1xbzasr1g68vql17hz4ef"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Longitude (generated)"
+          },
+          "Name": "Data.Longitude (generated)"
+        }
+      ]
+    }
+  },
+  "visualContainerObjects": {
+    "title": [
+      {
+        "properties": {
+          "text": {
+            "expr": {
+              "Literal": {
+                "Value": "'Q8'"
+              }
+            }
+          },
+          "show": {
+            "expr": {
+              "Literal": {
+                "Value": "true"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "filters": [
+    {
+      "target": {
+        "table": "Data",
+        "column": "federated.14vgqpy1xbzasr1g68vql17hz4ef].[none:Customer Segment:nk"
+      },
+      "filterType": "categorical",
+      "operator": "In",
+      "values": [
+        "\"Corporate\""
+      ]
+    },
+    {
+      "target": {
+        "table": "Data",
+        "column": "federated.14vgqpy1xbzasr1g68vql17hz4ef].[none:Product Sub-Category:nk"
+      },
+      "filterType": "categorical",
+      "operator": "In",
+      "values": [
+        "\"Envelopes\""
+      ]
+    },
+    {
+      "target": {
+        "table": "Data",
+        "column": "federated.14vgqpy1xbzasr1g68vql17hz4ef].[yr:Ship Date:ok"
+      },
+      "filterType": "categorical",
+      "operator": "In",
+      "values": [
+        "2012"
+      ]
+    }
+  ]
+}

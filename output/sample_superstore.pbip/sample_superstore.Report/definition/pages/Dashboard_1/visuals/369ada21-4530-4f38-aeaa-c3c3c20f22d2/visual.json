@@ -1,0 +1,182 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visual/1.0.0/schema.json",
+  "name": "369ada21-4530-4f38-aeaa-c3c3c20f22d2",
+  "visualType": "clusteredBarChart",
+  "position": {
+    "x": 1200.0,
+    "y": 69250.0,
+    "z": 0,
+    "width": 33300.0,
+    "height": 24000.0
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "projections": {
+      "Category": [
+        {
+          "queryRef": "Data.federated.14vgqpy1xbzasr1g68vql17hz4ef",
+          "active": true
+        },
+        {
+          "queryRef": "Data.sum:Profit:qk",
+          "active": true
+        },
+        {
+          "queryRef": "Data.federated.14vgqpy1xbzasr1g68vql17hz4ef",
+          "active": true
+        },
+        {
+          "queryRef": "Data.sum:Sales:qk",
+          "active": true
+        },
+        {
+          "queryRef": "Data.federated.14vgqpy1xbzasr1g68vql17hz4ef",
+          "active": true
+        },
+        {
+          "queryRef": "Data.none:Product Category:nk",
+          "active": true
+        },
+        {
+          "queryRef": "Data.federated.14vgqpy1xbzasr1g68vql17hz4ef",
+          "active": true
+        },
+        {
+          "queryRef": "Data.none:Product Name:nk",
+          "active": true
+        }
+      ]
+    },
+    "prototypeQuery": {
+      "Version": 2,
+      "From": [
+        {
+          "Name": "d",
+          "Entity": "Data",
+          "Type": 0
+        }
+      ],
+      "Select": [
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "federated.14vgqpy1xbzasr1g68vql17hz4ef"
+          },
+          "Name": "Data.federated.14vgqpy1xbzasr1g68vql17hz4ef"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "sum:Profit:qk"
+          },
+          "Name": "Data.sum:Profit:qk"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "federated.14vgqpy1xbzasr1g68vql17hz4ef"
+          },
+          "Name": "Data.federated.14vgqpy1xbzasr1g68vql17hz4ef"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "sum:Sales:qk"
+          },
+          "Name": "Data.sum:Sales:qk"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "federated.14vgqpy1xbzasr1g68vql17hz4ef"
+          },
+          "Name": "Data.federated.14vgqpy1xbzasr1g68vql17hz4ef"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "none:Product Category:nk"
+          },
+          "Name": "Data.none:Product Category:nk"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "federated.14vgqpy1xbzasr1g68vql17hz4ef"
+          },
+          "Name": "Data.federated.14vgqpy1xbzasr1g68vql17hz4ef"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "none:Product Name:nk"
+          },
+          "Name": "Data.none:Product Name:nk"
+        }
+      ]
+    }
+  },
+  "visualContainerObjects": {
+    "title": [
+      {
+        "properties": {
+          "text": {
+            "expr": {
+              "Literal": {
+                "Value": "'Q7'"
+              }
+            }
+          },
+          "show": {
+            "expr": {
+              "Literal": {
+                "Value": "true"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "filters": [
+    {
+      "target": {
+        "table": "Data",
+        "column": "federated.14vgqpy1xbzasr1g68vql17hz4ef].[none:Product Name:nk"
+      },
+      "filterType": "categorical"
+    }
+  ]
+}

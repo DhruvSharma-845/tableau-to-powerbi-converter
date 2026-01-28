@@ -1,0 +1,127 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visual/1.0.0/schema.json",
+  "name": "10357934-04e7-48fd-a3a1-aa1a3b824a5d",
+  "visualType": "clusteredBarChart",
+  "position": {
+    "x": 0.0,
+    "y": 0.0,
+    "z": 0,
+    "width": 700.0,
+    "height": 450.0
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "projections": {
+      "Category": [
+        {
+          "queryRef": "Data.Sales.SalesData",
+          "active": true
+        },
+        {
+          "queryRef": "Data.Calculation_SalesByCustomerFixed",
+          "active": true
+        },
+        {
+          "queryRef": "Data.Sales.SalesData",
+          "active": true
+        },
+        {
+          "queryRef": "Data.Customer Name",
+          "active": true
+        }
+      ]
+    },
+    "prototypeQuery": {
+      "Version": 2,
+      "From": [
+        {
+          "Name": "d",
+          "Entity": "Data",
+          "Type": 0
+        }
+      ],
+      "Select": [
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Sales.SalesData"
+          },
+          "Name": "Data.Sales.SalesData"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Calculation_SalesByCustomerFixed"
+          },
+          "Name": "Data.Calculation_SalesByCustomerFixed"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Sales.SalesData"
+          },
+          "Name": "Data.Sales.SalesData"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Customer Name"
+          },
+          "Name": "Data.Customer Name"
+        }
+      ]
+    }
+  },
+  "visualContainerObjects": {
+    "title": [
+      {
+        "properties": {
+          "text": {
+            "expr": {
+              "Literal": {
+                "Value": "'Customer LOD Analysis'"
+              }
+            }
+          },
+          "show": {
+            "expr": {
+              "Literal": {
+                "Value": "true"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "filters": [
+    {
+      "target": {
+        "table": "Data",
+        "column": "Sales.SalesData].[Customer Segment"
+      },
+      "filterType": "categorical",
+      "operator": "In",
+      "values": [
+        "\"Corporate\"",
+        "\"Consumer\""
+      ]
+    }
+  ]
+}

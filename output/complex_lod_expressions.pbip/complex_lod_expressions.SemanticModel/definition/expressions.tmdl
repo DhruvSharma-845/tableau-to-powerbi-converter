@@ -1,0 +1,10 @@
+expression Expressions
+
+    expression 'Sales Data' =
+        ```
+        let
+    Source = Sql.Database("sales-db.company.com", "SalesAnalytics"),
+    Data = Source{[Schema="dbo",Item="Sales Data"]}[Data]
+in
+    Data
+        ```

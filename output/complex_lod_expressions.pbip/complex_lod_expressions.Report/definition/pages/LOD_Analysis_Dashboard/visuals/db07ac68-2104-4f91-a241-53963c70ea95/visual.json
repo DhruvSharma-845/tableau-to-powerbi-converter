@@ -1,0 +1,113 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visual/1.0.0/schema.json",
+  "name": "db07ac68-2104-4f91-a241-53963c70ea95",
+  "visualType": "pivotTable",
+  "position": {
+    "x": 0.0,
+    "y": 450.0,
+    "z": 0,
+    "width": 700.0,
+    "height": 450.0
+  },
+  "visual": {
+    "visualType": "pivotTable",
+    "projections": {
+      "Category": [
+        {
+          "queryRef": "Data.Sales.SalesData",
+          "active": true
+        },
+        {
+          "queryRef": "Data.Calculation_CohortSales",
+          "active": true
+        },
+        {
+          "queryRef": "Data.Sales.SalesData",
+          "active": true
+        },
+        {
+          "queryRef": "Data.Order Date",
+          "active": true
+        }
+      ]
+    },
+    "prototypeQuery": {
+      "Version": 2,
+      "From": [
+        {
+          "Name": "d",
+          "Entity": "Data",
+          "Type": 0
+        }
+      ],
+      "Select": [
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Sales.SalesData"
+          },
+          "Name": "Data.Sales.SalesData"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Calculation_CohortSales"
+          },
+          "Name": "Data.Calculation_CohortSales"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Sales.SalesData"
+          },
+          "Name": "Data.Sales.SalesData"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Order Date"
+          },
+          "Name": "Data.Order Date"
+        }
+      ]
+    }
+  },
+  "visualContainerObjects": {
+    "title": [
+      {
+        "properties": {
+          "text": {
+            "expr": {
+              "Literal": {
+                "Value": "'Cohort Analysis'"
+              }
+            }
+          },
+          "show": {
+            "expr": {
+              "Literal": {
+                "Value": "true"
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+}

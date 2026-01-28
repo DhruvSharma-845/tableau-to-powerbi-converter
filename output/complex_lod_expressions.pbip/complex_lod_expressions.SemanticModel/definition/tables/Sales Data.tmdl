@@ -1,0 +1,138 @@
+table 'Sales Data'
+    lineageTag: 021d3c7e-baec-4a4d-a4bc-9576e2f1e020
+
+    column Order Date
+        dataType: dateTime
+        lineageTag: 214f360a-acba-4fa3-acb3-bdab35f03d00
+
+    column Customer ID
+        dataType: string
+        lineageTag: a94753b5-0c26-4854-b5a5-0f6290a62c76
+
+    column Customer Name
+        dataType: string
+        lineageTag: c118677a-b518-44da-9a42-f5b00ea3d984
+
+    column Customer Segment
+        dataType: string
+        lineageTag: 96744c81-02d9-4689-bbb7-07737cb0599c
+
+    column Product ID
+        dataType: string
+        lineageTag: 654ea8e2-7b8d-47b8-9586-5736201f3eef
+
+    column Product Name
+        dataType: string
+        lineageTag: a54c9fcf-83e3-46ca-a80d-132a00072be8
+
+    column Category
+        dataType: string
+        lineageTag: a306ac48-6598-4e11-bc70-1a97b48169d3
+
+    column Sub-Category
+        dataType: string
+        lineageTag: b01e266f-d7ba-486f-85e9-a09ffee48614
+
+    column Region
+        dataType: string
+        lineageTag: f90d898d-be1b-4f86-a623-30158f499196
+
+    column State
+        dataType: string
+        lineageTag: 5787049f-3c91-4797-9ff1-937f62b3424d
+
+    column City
+        dataType: string
+        lineageTag: 60cae576-4917-464f-bde5-44e514ecb228
+
+    column Sales
+        dataType: double
+        lineageTag: 648b2fd8-ce12-428a-b9dc-804b8bfe0cec
+
+    column Quantity
+        dataType: int64
+        lineageTag: 2825632d-fc9d-4fe9-b38a-a4688b7e55e8
+
+    column Discount
+        dataType: double
+        lineageTag: 7fb52949-62f2-42e2-89ae-901b7f055691
+
+    column Profit
+        dataType: double
+        lineageTag: 455a2b1b-61bd-4f8f-9f09-31316ffa31a9
+
+    measure 'Total Sales (FIXED)' = CALCULATE(SUM([Sales]), ALL(Table))
+        lineageTag: 0d80f748-9c52-4d5e-973c-2d127cc6c455
+        description: Translated from Tableau: {FIXED : SUM([Sales])}...
+
+    measure 'Customer Total Sales' = CALCULATE(SUM([Sales]), ALLEXCEPT(Table, 'Customer ID'))
+        lineageTag: 1fe31993-4534-491a-8d3c-abba340fc93f
+        description: Translated from Tableau: {FIXED [Customer ID] : SUM([Sales])}...
+
+    measure 'Region-Category Sales' = CALCULATE(SUM([Sales]), ALLEXCEPT(Table, 'Region', 'Category'))
+        lineageTag: 4a2c7d23-55c8-476a-842b-6c572b89979c
+        description: Translated from Tableau: {FIXED [Region], [Category] : SUM([Sales])}...
+
+    measure 'Customer First Order Date' = CALCULATE(MIN([Order Date]), ALLEXCEPT(Table, 'Customer ID'))
+        lineageTag: 00bdd408-7303-4949-95bb-5d7d53932aca
+        description: Translated from Tableau: {FIXED [Customer ID] : MIN([Order Date])}...
+
+    measure 'Avg Order Value per Customer' = CALCULATE(SUM([Sales]), ALLEXCEPT(Table, 'Customer ID', 'Order Date'))
+        lineageTag: 84f8559c-12fa-453a-83c8-6fa5f047e38a
+        description: Translated from Tableau: {FIXED [Customer ID], [Order Date] : SUM([Sales])}...
+
+    measure 'Sales Including City' = AVERAGEX(SUMMARIZE(Table, City, "_val", SUM([Sales])), [_val])
+        lineageTag: acb36407-b39b-43f0-9e6b-e1f22832c78e
+        description: Translated from Tableau: {INCLUDE [City] : SUM([Sales])}...
+
+    measure 'Avg Sales Including Product' = AVERAGEX(SUMMARIZE(Table, Product ID, "_val", AVERAGE([Sales])), [_val])
+        lineageTag: 84f3836f-0ccc-4abe-88e7-cdd41c58606e
+        description: Translated from Tableau: {INCLUDE [Product ID] : AVG([Sales])}...
+
+    measure 'Daily Order Count' = AVERAGEX(SUMMARIZE(Table, Order Date, "_val", DISTINCTCOUNT([Customer ID])), [_val])
+        lineageTag: 7c09cfd4-1d66-44de-82af-c41a4a3e52d0
+        description: Translated from Tableau: {INCLUDE [Order Date] : COUNTD([Customer ID])}...
+
+    measure 'Sales Excluding State' = CALCULATE(SUM([Sales]), REMOVEFILTERS('State'))
+        lineageTag: 00ad5874-8b39-444c-899d-9fdf6a252575
+        description: Translated from Tableau: {EXCLUDE [State] : SUM([Sales])}...
+
+    measure 'Sales Excluding Product' = CALCULATE(SUM([Sales]), REMOVEFILTERS('Product ID', 'Product Name'))
+        lineageTag: 2e6d2782-94ad-47a4-a67f-45b13d734d80
+        description: Translated from Tableau: {EXCLUDE [Product ID], [Product Name] : SUM([Sales])}...
+
+    measure 'Avg Sales Excluding City' = CALCULATE(AVERAGE([Sales]), REMOVEFILTERS('City'))
+        lineageTag: 7761856a-ac76-421f-b4d5-75a75ac28c9b
+        description: Translated from Tableau: {EXCLUDE [City] : AVG([Sales])}...
+
+    measure 'Customer % of Total' = (CALCULATE(SUM([Sales]), ALLEXCEPT(Table, 'Customer ID')) / CALCULATE(SUM([Sales]), ALL(Table)))
+        lineageTag: 3a8c4503-4f43-48da-8bc3-a3fb616c284c
+        description: Translated from Tableau: {FIXED [Customer ID] : SUM([Sales])} / {FIXED : SUM([Sales])}...
+
+    measure 'Region Share in Category' = (SUM([Sales]) / CALCULATE(SUM([Sales]), ALLEXCEPT(Table, 'Category')))
+        lineageTag: 798a7392-9b8c-4830-852e-de30fce8604b
+        description: Translated from Tableau: SUM([Sales]) / {FIXED [Category] : SUM([Sales])}...
+
+    measure 'New Customer Sales' = IF([Order Date] = CALCULATE(MIN([Order Date]), ALLEXCEPT(Table, 'Customer ID')), [Sales], 0.0)
+        lineageTag: 3eead231-b810-451e-9808-84ccebec4f44
+        description: Translated from Tableau: IF [Order Date] = {FIXED [Customer ID] : MIN([Order Date])} THEN [Sales] ELSE 0 END...
+
+    measure 'Is Repeat Customer' = CALCULATE(DISTINCTCOUNT([Order Date]), ALLEXCEPT(Table, 'Customer ID')) > 1.0
+        lineageTag: de8df490-5b22-4489-9dfc-e561746fa151
+        description: Translated from Tableau: {FIXED [Customer ID] : COUNTD([Order Date])} > 1...
+
+    measure 'Is Top Customer' = CALCULATE(SUM([Sales]), ALLEXCEPT(Table, 'Customer ID')) >= CALCULATE(PERCENTILE(CALCULATE(SUM([Sales]), ALLEXCEPT(Table, 'Customer ID')), 0.9), ALL(Table))
+        lineageTag: 05d04165-682e-408a-879a-5a9525da58ee
+        description: Translated from Tableau: {FIXED [Customer ID] : SUM([Sales])} >=            {FIXED : PERCENTILE({FIXED [Customer ID] : SUM([S...
+
+    measure 'Cohort Total Sales' = CALCULATE(DATE(YEAR(CALCULATE(MIN([Order Date]), ALLEXCEPT(Table, 'Customer ID'))), MONTH(CALCULATE(MIN([Order Date]), ALLEXCEPT(Table, 'Customer ID'))), 1), ALL(Table))
+        lineageTag: 215d3508-2c8f-4dba-b5bb-c1335a0a80ec
+        description: Translated from Tableau: {FIXED DATETRUNC("month", {FIXED [Customer ID] : MIN([Order Date])}) : SUM([Sales])}...
+
+    measure 'Date Granularity' = SELECTEDVALUE('Date Granularity'[Value], ""Month"")
+        lineageTag: 7f0751da-f3a7-4f5b-8ff2-9ffcfc764fd3
+        description: Tableau parameter - configure as What-If parameter
+
+    measure 'Top N' = SELECTEDVALUE('Top N'[Value], 10)
+        lineageTag: ef05ba62-14f9-42b7-a23f-5bcb917d45b3
+        description: Tableau parameter - configure as What-If parameter

@@ -1,0 +1,130 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visual/1.0.0/schema.json",
+  "name": "47520f61-0fd2-447b-8afc-10cf9772e79d",
+  "visualType": "clusteredBarChart",
+  "position": {
+    "x": 700.0,
+    "y": 0.0,
+    "z": 0,
+    "width": 700.0,
+    "height": 450.0
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "projections": {
+      "Category": [
+        {
+          "queryRef": "Data.Sales.SalesData",
+          "active": true
+        },
+        {
+          "queryRef": "Data.Region",
+          "active": true
+        },
+        {
+          "queryRef": "Data.Sales.SalesData",
+          "active": true
+        },
+        {
+          "queryRef": "Data.Sales",
+          "active": true
+        }
+      ],
+      "Legend": [
+        {
+          "queryRef": "Data.Sales.SalesData].[Category",
+          "active": true
+        }
+      ]
+    },
+    "prototypeQuery": {
+      "Version": 2,
+      "From": [
+        {
+          "Name": "d",
+          "Entity": "Data",
+          "Type": 0
+        }
+      ],
+      "Select": [
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Sales.SalesData"
+          },
+          "Name": "Data.Sales.SalesData"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Region"
+          },
+          "Name": "Data.Region"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Sales.SalesData"
+          },
+          "Name": "Data.Sales.SalesData"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Sales"
+          },
+          "Name": "Data.Sales"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Sales.SalesData].[Category"
+          },
+          "Name": "Data.Sales.SalesData].[Category"
+        }
+      ]
+    }
+  },
+  "visualContainerObjects": {
+    "title": [
+      {
+        "properties": {
+          "text": {
+            "expr": {
+              "Literal": {
+                "Value": "'Regional Performance'"
+              }
+            }
+          },
+          "show": {
+            "expr": {
+              "Literal": {
+                "Value": "true"
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+}

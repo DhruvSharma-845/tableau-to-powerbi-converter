@@ -1,0 +1,157 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visual/1.0.0/schema.json",
+  "name": "1cfca9cb-7da3-4c25-b2ed-1c649737f373",
+  "visualType": "clusteredBarChart",
+  "position": {
+    "x": 69600.0,
+    "y": 5875.0,
+    "z": 0,
+    "width": 29800.0,
+    "height": 20375.0
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "projections": {
+      "Category": [
+        {
+          "queryRef": "Data.federated.14vgqpy1xbzasr1g68vql17hz4ef",
+          "active": true
+        },
+        {
+          "queryRef": "Data.Multiple Values",
+          "active": true
+        },
+        {
+          "queryRef": "Data.federated.14vgqpy1xbzasr1g68vql17hz4ef",
+          "active": true
+        },
+        {
+          "queryRef": "Data.none:Product Category:nk",
+          "active": true
+        },
+        {
+          "queryRef": "Data.federated.14vgqpy1xbzasr1g68vql17hz4ef",
+          "active": true
+        },
+        {
+          "queryRef": "Data.:Measure Names",
+          "active": true
+        }
+      ]
+    },
+    "prototypeQuery": {
+      "Version": 2,
+      "From": [
+        {
+          "Name": "d",
+          "Entity": "Data",
+          "Type": 0
+        }
+      ],
+      "Select": [
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "federated.14vgqpy1xbzasr1g68vql17hz4ef"
+          },
+          "Name": "Data.federated.14vgqpy1xbzasr1g68vql17hz4ef"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Multiple Values"
+          },
+          "Name": "Data.Multiple Values"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "federated.14vgqpy1xbzasr1g68vql17hz4ef"
+          },
+          "Name": "Data.federated.14vgqpy1xbzasr1g68vql17hz4ef"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "none:Product Category:nk"
+          },
+          "Name": "Data.none:Product Category:nk"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "federated.14vgqpy1xbzasr1g68vql17hz4ef"
+          },
+          "Name": "Data.federated.14vgqpy1xbzasr1g68vql17hz4ef"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": ":Measure Names"
+          },
+          "Name": "Data.:Measure Names"
+        }
+      ]
+    }
+  },
+  "visualContainerObjects": {
+    "title": [
+      {
+        "properties": {
+          "text": {
+            "expr": {
+              "Literal": {
+                "Value": "'Q3'"
+              }
+            }
+          },
+          "show": {
+            "expr": {
+              "Literal": {
+                "Value": "true"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "filters": [
+    {
+      "target": {
+        "table": "Data",
+        "column": "federated.14vgqpy1xbzasr1g68vql17hz4ef].[:Measure Names"
+      },
+      "filterType": "categorical",
+      "operator": "In",
+      "values": [
+        "\"[federated.14vgqpy1xbzasr1g68vql17hz4ef].[sum:Profit:qk]\"",
+        "\"[federated.14vgqpy1xbzasr1g68vql17hz4ef].[sum:Sales:qk]\""
+      ]
+    }
+  ]
+}

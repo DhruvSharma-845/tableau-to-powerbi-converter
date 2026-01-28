@@ -1,0 +1,18 @@
+{
+  "version": "1.0",
+  "artifacts": [
+    {
+      "report": {
+        "path": "complex_lod_expressions.Report"
+      }
+    },
+    {
+      "semanticModel": {
+        "path": "complex_lod_expressions.SemanticModel"
+      }
+    }
+  ],
+  "settings": {
+    "enableAutoRecovery": true
+  }
+}

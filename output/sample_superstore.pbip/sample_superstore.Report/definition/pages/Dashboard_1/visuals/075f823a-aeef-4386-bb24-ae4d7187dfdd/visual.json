@@ -1,0 +1,122 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visual/1.0.0/schema.json",
+  "name": "075f823a-aeef-4386-bb24-ae4d7187dfdd",
+  "visualType": "clusteredBarChart",
+  "position": {
+    "x": 667.0,
+    "y": 12889.0,
+    "z": 0,
+    "width": 98666.0,
+    "height": 86222.0
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "projections": {
+      "Category": [
+        {
+          "queryRef": "Data.federated.14vgqpy1xbzasr1g68vql17hz4ef",
+          "active": true
+        },
+        {
+          "queryRef": "Data.Latitude (generated)",
+          "active": true
+        },
+        {
+          "queryRef": "Data.federated.14vgqpy1xbzasr1g68vql17hz4ef",
+          "active": true
+        },
+        {
+          "queryRef": "Data.Longitude (generated)",
+          "active": true
+        }
+      ]
+    },
+    "prototypeQuery": {
+      "Version": 2,
+      "From": [
+        {
+          "Name": "d",
+          "Entity": "Data",
+          "Type": 0
+        }
+      ],
+      "Select": [
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "federated.14vgqpy1xbzasr1g68vql17hz4ef"
+          },
+          "Name": "Data.federated.14vgqpy1xbzasr1g68vql17hz4ef"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Latitude (generated)"
+          },
+          "Name": "Data.Latitude (generated)"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "federated.14vgqpy1xbzasr1g68vql17hz4ef"
+          },
+          "Name": "Data.federated.14vgqpy1xbzasr1g68vql17hz4ef"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Longitude (generated)"
+          },
+          "Name": "Data.Longitude (generated)"
+        }
+      ]
+    }
+  },
+  "visualContainerObjects": {
+    "title": [
+      {
+        "properties": {
+          "text": {
+            "expr": {
+              "Literal": {
+                "Value": "'Q1'"
+              }
+            }
+          },
+          "show": {
+            "expr": {
+              "Literal": {
+                "Value": "true"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "filters": [
+    {
+      "target": {
+        "table": "Data",
+        "column": "federated.14vgqpy1xbzasr1g68vql17hz4ef].[none:State or Province:nk"
+      },
+      "filterType": "categorical"
+    }
+  ]
+}

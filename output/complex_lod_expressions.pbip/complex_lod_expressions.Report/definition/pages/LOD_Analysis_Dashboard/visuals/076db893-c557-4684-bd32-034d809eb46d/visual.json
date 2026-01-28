@@ -1,0 +1,16 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visual/1.0.0/schema.json",
+  "name": "076db893-c557-4684-bd32-034d809eb46d",
+  "visualType": "textbox",
+  "position": {
+    "x": 550.0,
+    "y": 20.0,
+    "z": 0,
+    "width": 300.0,
+    "height": 40.0
+  },
+  "visual": {
+    "visualType": "textbox"
+  },
+  "visualContainerObjects": {}
+}

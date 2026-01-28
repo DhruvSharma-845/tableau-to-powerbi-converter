@@ -1,0 +1,28 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/1.0.0/schema.json",
+  "id": "51600703-1622-428f-80a0-f3bddb5d9056",
+  "name": "complex_lod_expressions",
+  "themeCollection": {
+    "baseTheme": {
+      "name": "CY24SU02",
+      "version": "5.0.0",
+      "type": "default"
+    }
+  },
+  "layoutOptimization": "horizontal",
+  "pages": [
+    {
+      "name": "LOD_Analysis_Dashboard",
+      "displayName": "LOD Analysis Dashboard"
+    }
+  ],
+  "config": {
+    "version": "5.59",
+    "settings": {
+      "isPersistentUserStateDisabled": false,
+      "hideVisualContainerHeader": false,
+      "useDefaultAggregateDisplayName": true
+    }
+  },
+  "resourcePackages": []
+}

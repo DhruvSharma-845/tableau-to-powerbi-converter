@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="json" ContentType="application/json"/>
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Override PartName="/Version.txt" ContentType="text/plain"/>
+  <Override PartName="/Report/Layout" ContentType="application/json"/>
+  <Override PartName="/Settings" ContentType="application/json"/>
+  <Override PartName="/Connections" ContentType="application/json"/>
+</Types>

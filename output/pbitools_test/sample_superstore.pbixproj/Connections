@@ -1,0 +1,10 @@
+{
+  "Version": 1,
+  "Connections": [
+    {
+      "Name": "Orders (Sample-Superstore-Subset-Excel_0)",
+      "ConnectionString": "",
+      "ConnectionType": "Unknown"
+    }
+  ]
+}
