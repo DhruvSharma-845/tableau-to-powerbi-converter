@@ -1,0 +1,330 @@
+{
+  "name": "sample_superstore",
+  "tables": [
+    {
+      "name": "Orders (Sample-Superstore-Subset-Excel_0)",
+      "columns": [
+        {
+          "name": "Row ID",
+          "dataType": "int64",
+          "sourceColumn": "Row ID",
+          "isHidden": false,
+          "formatString": null
+        },
+        {
+          "name": "Order Priority",
+          "dataType": "string",
+          "sourceColumn": "Order Priority",
+          "isHidden": false,
+          "formatString": null
+        },
+        {
+          "name": "Discount",
+          "dataType": "double",
+          "sourceColumn": "Discount",
+          "isHidden": false,
+          "formatString": null
+        },
+        {
+          "name": "Unit Price",
+          "dataType": "double",
+          "sourceColumn": "Unit Price",
+          "isHidden": false,
+          "formatString": null
+        },
+        {
+          "name": "Shipping Cost",
+          "dataType": "double",
+          "sourceColumn": "Shipping Cost",
+          "isHidden": false,
+          "formatString": null
+        },
+        {
+          "name": "Customer ID",
+          "dataType": "int64",
+          "sourceColumn": "Customer ID",
+          "isHidden": false,
+          "formatString": null
+        },
+        {
+          "name": "Customer Name",
+          "dataType": "string",
+          "sourceColumn": "Customer Name",
+          "isHidden": false,
+          "formatString": null
+        },
+        {
+          "name": "Ship Mode",
+          "dataType": "string",
+          "sourceColumn": "Ship Mode",
+          "isHidden": false,
+          "formatString": null
+        },
+        {
+          "name": "Customer Segment",
+          "dataType": "string",
+          "sourceColumn": "Customer Segment",
+          "isHidden": false,
+          "formatString": null
+        },
+        {
+          "name": "Product Category",
+          "dataType": "string",
+          "sourceColumn": "Product Category",
+          "isHidden": false,
+          "formatString": null
+        },
+        {
+          "name": "Product Sub-Category",
+          "dataType": "string",
+          "sourceColumn": "Product Sub-Category",
+          "isHidden": false,
+          "formatString": null
+        },
+        {
+          "name": "Product Container",
+          "dataType": "string",
+          "sourceColumn": "Product Container",
+          "isHidden": false,
+          "formatString": null
+        },
+        {
+          "name": "Product Name",
+          "dataType": "string",
+          "sourceColumn": "Product Name",
+          "isHidden": false,
+          "formatString": null
+        },
+        {
+          "name": "Product Base Margin",
+          "dataType": "double",
+          "sourceColumn": "Product Base Margin",
+          "isHidden": false,
+          "formatString": null
+        },
+        {
+          "name": "Region",
+          "dataType": "string",
+          "sourceColumn": "Region",
+          "isHidden": false,
+          "formatString": null
+        },
+        {
+          "name": "State or Province",
+          "dataType": "string",
+          "sourceColumn": "State or Province",
+          "isHidden": false,
+          "formatString": null
+        },
+        {
+          "name": "City",
+          "dataType": "string",
+          "sourceColumn": "City",
+          "isHidden": false,
+          "formatString": null
+        },
+        {
+          "name": "Postal Code",
+          "dataType": "int64",
+          "sourceColumn": "Postal Code",
+          "isHidden": false,
+          "formatString": null
+        },
+        {
+          "name": "Order Date",
+          "dataType": "dateTime",
+          "sourceColumn": "Order Date",
+          "isHidden": false,
+          "formatString": "yyyy-MM-dd"
+        },
+        {
+          "name": "Ship Date",
+          "dataType": "dateTime",
+          "sourceColumn": "Ship Date",
+          "isHidden": false,
+          "formatString": "yyyy-MM-dd"
+        },
+        {
+          "name": "Profit",
+          "dataType": "double",
+          "sourceColumn": "Profit",
+          "isHidden": false,
+          "formatString": null
+        },
+        {
+          "name": "Quantity ordered new",
+          "dataType": "int64",
+          "sourceColumn": "Quantity ordered new",
+          "isHidden": false,
+          "formatString": null
+        },
+        {
+          "name": "Sales",
+          "dataType": "double",
+          "sourceColumn": "Sales",
+          "isHidden": false,
+          "formatString": null
+        },
+        {
+          "name": "Order ID",
+          "dataType": "int64",
+          "sourceColumn": "Order ID",
+          "isHidden": false,
+          "formatString": null
+        },
+        {
+          "name": "City",
+          "dataType": "string",
+          "sourceColumn": "City",
+          "isHidden": false,
+          "formatString": null
+        },
+        {
+          "name": "Customer ID",
+          "dataType": "int64",
+          "sourceColumn": "Customer ID",
+          "isHidden": false,
+          "formatString": null
+        },
+        {
+          "name": "Discount",
+          "dataType": "double",
+          "sourceColumn": "Discount",
+          "isHidden": false,
+          "formatString": "#,##0.00"
+        },
+        {
+          "name": "Number of Records",
+          "dataType": "int64",
+          "sourceColumn": "Number of Records",
+          "isHidden": false,
+          "formatString": "#,##0.00"
+        },
+        {
+          "name": "Order ID",
+          "dataType": "int64",
+          "sourceColumn": "Order ID",
+          "isHidden": false,
+          "formatString": null
+        },
+        {
+          "name": "Postal Code",
+          "dataType": "int64",
+          "sourceColumn": "Postal Code",
+          "isHidden": false,
+          "formatString": null
+        },
+        {
+          "name": "Product Base Margin",
+          "dataType": "double",
+          "sourceColumn": "Product Base Margin",
+          "isHidden": false,
+          "formatString": "#,##0.00"
+        },
+        {
+          "name": "Profit",
+          "dataType": "double",
+          "sourceColumn": "Profit",
+          "isHidden": false,
+          "formatString": "#,##0.00"
+        },
+        {
+          "name": "Quantity ordered new",
+          "dataType": "int64",
+          "sourceColumn": "Quantity ordered new",
+          "isHidden": false,
+          "formatString": "#,##0.00"
+        },
+        {
+          "name": "Row ID",
+          "dataType": "int64",
+          "sourceColumn": "Row ID",
+          "isHidden": false,
+          "formatString": null
+        },
+        {
+          "name": "Sales",
+          "dataType": "double",
+          "sourceColumn": "Sales",
+          "isHidden": false,
+          "formatString": "#,##0.00"
+        },
+        {
+          "name": "Shipping Cost",
+          "dataType": "double",
+          "sourceColumn": "Shipping Cost",
+          "isHidden": false,
+          "formatString": "#,##0.00"
+        },
+        {
+          "name": "State or Province",
+          "dataType": "string",
+          "sourceColumn": "State or Province",
+          "isHidden": false,
+          "formatString": null
+        },
+        {
+          "name": "Unit Price",
+          "dataType": "double",
+          "sourceColumn": "Unit Price",
+          "isHidden": false,
+          "formatString": "#,##0.00"
+        }
+      ],
+      "measureCount": 4,
+      "isHidden": false
+    },
+    {
+      "name": "Orders (Sample-Superstore-Subset-Excel_0)",
+      "columns": [],
+      "measureCount": 0,
+      "isHidden": false
+    },
+    {
+      "name": "Orders (Sample-Superstore-Subset-Excel_0)",
+      "columns": [],
+      "measureCount": 0,
+      "isHidden": false
+    },
+    {
+      "name": "Orders (Sample-Superstore-Subset-Excel_0)",
+      "columns": [],
+      "measureCount": 0,
+      "isHidden": false
+    },
+    {
+      "name": "Orders (Sample-Superstore-Subset-Excel_0)",
+      "columns": [],
+      "measureCount": 0,
+      "isHidden": false
+    },
+    {
+      "name": "Orders (Sample-Superstore-Subset-Excel_0)",
+      "columns": [],
+      "measureCount": 0,
+      "isHidden": false
+    },
+    {
+      "name": "Orders (Sample-Superstore-Subset-Excel_0)",
+      "columns": [],
+      "measureCount": 0,
+      "isHidden": false
+    },
+    {
+      "name": "Orders (Sample-Superstore-Subset-Excel_0)",
+      "columns": [],
+      "measureCount": 0,
+      "isHidden": false
+    },
+    {
+      "name": "Orders (Sample-Superstore-Subset-Excel_0)",
+      "columns": [],
+      "measureCount": 0,
+      "isHidden": false
+    }
+  ],
+  "relationships": [],
+  "totalTables": 9,
+  "totalColumns": 38,
+  "totalRelationships": 0
+}

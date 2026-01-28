@@ -823,6 +823,147 @@ def to_pbix(workbook: str, output_path: str, genai: bool):
 
 @cli.command()
 @click.argument('workbook', type=click.Path(exists=True))
+@click.option('-o', '--output', 'output_dir', required=True,
+              type=click.Path(), help='Output directory for JSON files')
+@click.option('--genai/--no-genai', default=False,
+              help='Use GenAI for formula translation')
+def export_json(workbook: str, output_dir: str, genai: bool):
+    """Export Tableau workbook as JSON files for manual Power BI creation.
+    
+    This is the most reliable method - exports:
+    - dax_measures.txt: DAX measures ready to copy-paste
+    - measures.json: All measures with metadata
+    - model.json: Data model definition
+    - visuals.json: Visual configurations
+    - conversion_summary.md: Overview and instructions
+    
+    Example:
+        python main.py export-json sample.twbx -o output/
+    """
+    from generators.json_export import JSONExporter
+    
+    console.print(Panel.fit(
+        "[bold blue]Tableau to Power BI Converter[/bold blue]",
+        subtitle="JSON Export (Most Reliable)"
+    ))
+    
+    try:
+        # Parse Tableau workbook
+        console.print(f"[cyan]Parsing Tableau workbook: {workbook}[/cyan]")
+        parser = TWBXParser(workbook)
+        workbook_model = parser.parse()
+        
+        console.print(f"  Found {len(workbook_model.datasources)} data source(s)")
+        console.print(f"  Found {len(workbook_model.worksheets)} worksheet(s)")
+        console.print(f"  Found {len(workbook_model.dashboards)} dashboard(s)")
+        
+        # Generate semantic model
+        console.print("\n[cyan]Generating Power BI model...[/cyan]")
+        model_generator = SemanticModelGenerator(use_genai=genai)
+        powerbi_report = model_generator.generate(workbook_model)
+        
+        # Map visuals
+        console.print("[cyan]Mapping visualizations...[/cyan]")
+        worksheets_dict = {ws.name: ws for ws in workbook_model.worksheets}
+        
+        for dashboard in workbook_model.dashboards:
+            page = VisualMapper().map_dashboard_to_page(dashboard, worksheets_dict)
+            powerbi_report.pages.append(page)
+        
+        # Export to JSON
+        console.print("[cyan]Exporting to JSON...[/cyan]")
+        exporter = JSONExporter()
+        files = exporter.export(powerbi_report, output_dir)
+        
+        console.print(f"\n[bold green]Export Complete![/bold green]")
+        console.print("\nFiles created:")
+        for name, path in files.items():
+            console.print(f"  - {name}: [cyan]{path}[/cyan]")
+        
+        console.print("\n[bold]Next Steps:[/bold]")
+        console.print("1. Open [cyan]dax_measures.txt[/cyan] to copy DAX formulas into Power BI")
+        console.print("2. Use [cyan]visuals.json[/cyan] as reference for creating visuals")
+        console.print("3. Read [cyan]conversion_summary.md[/cyan] for full instructions")
+        
+    except Exception as e:
+        console.print(f"[bold red]Error: {str(e)}[/bold red]")
+        import traceback
+        console.print(f"[dim]{traceback.format_exc()}[/dim]")
+        raise click.Abort()
+
+
+@cli.command()
+@click.argument('workbook', type=click.Path(exists=True))
+@click.option('-o', '--output', 'output_path', required=True,
+              type=click.Path(), help='Output PBIT file path')
+@click.option('--genai/--no-genai', default=False,
+              help='Use GenAI for formula translation')
+def to_pbit(workbook: str, output_path: str, genai: bool):
+    """Convert a Tableau workbook to a Power BI Template (PBIT) file.
+    
+    PBIT files are templates without data - more reliable to open in
+    Power BI Desktop than PBIX. You can then connect to your data sources.
+    
+    Example:
+        python main.py to-pbit sample.twbx -o output/report.pbit
+    """
+    from generators.pbit_generator import PBITGenerator
+    
+    console.print(Panel.fit(
+        "[bold blue]Tableau to Power BI Converter[/bold blue]",
+        subtitle="PBIT Template Generation"
+    ))
+    
+    try:
+        # Parse Tableau workbook
+        console.print(f"[cyan]Parsing Tableau workbook: {workbook}[/cyan]")
+        parser = TWBXParser(workbook)
+        workbook_model = parser.parse()
+        
+        console.print(f"  Found {len(workbook_model.datasources)} data source(s)")
+        console.print(f"  Found {len(workbook_model.worksheets)} worksheet(s)")
+        console.print(f"  Found {len(workbook_model.dashboards)} dashboard(s)")
+        
+        # Generate semantic model
+        console.print("\n[cyan]Generating Power BI model...[/cyan]")
+        model_generator = SemanticModelGenerator(use_genai=genai)
+        powerbi_report = model_generator.generate(workbook_model)
+        
+        # Map visuals
+        console.print("[cyan]Mapping visualizations...[/cyan]")
+        worksheets_dict = {ws.name: ws for ws in workbook_model.worksheets}
+        
+        for worksheet in workbook_model.worksheets:
+            VisualMapper().map_worksheet(worksheet)
+        
+        # Map dashboards to pages
+        for dashboard in workbook_model.dashboards:
+            page = VisualMapper().map_dashboard_to_page(dashboard, worksheets_dict)
+            powerbi_report.pages.append(page)
+        
+        # Build PBIT file
+        console.print("[cyan]Building PBIT template...[/cyan]")
+        generator = PBITGenerator()
+        result_path = generator.generate(powerbi_report, output_path)
+        
+        console.print(f"\n[bold green]Conversion Complete![/bold green]")
+        console.print(f"Output: {result_path}")
+        console.print("\n[dim]Open in Power BI Desktop to view and connect to data.[/dim]")
+        
+        # Show file size
+        from pathlib import Path
+        file_size = Path(result_path).stat().st_size
+        console.print(f"[dim]File size: {file_size:,} bytes[/dim]")
+        
+    except Exception as e:
+        console.print(f"[bold red]Error: {str(e)}[/bold red]")
+        import traceback
+        console.print(f"[dim]{traceback.format_exc()}[/dim]")
+        raise click.Abort()
+
+
+@cli.command()
+@click.argument('workbook', type=click.Path(exists=True))
 @click.option('--name', '-n', help='Dataset name (default: workbook name)')
 @click.option('--workspace', '-w', envvar='POWERBI_WORKSPACE_ID',
               help='Power BI workspace ID')
