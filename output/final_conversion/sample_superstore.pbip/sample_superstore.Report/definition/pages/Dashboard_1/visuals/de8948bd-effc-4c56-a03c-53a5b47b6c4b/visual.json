@@ -1,0 +1,178 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visual/1.0.0/schema.json",
+  "name": "de8948bd-effc-4c56-a03c-53a5b47b6c4b",
+  "visualType": "clusteredBarChart",
+  "position": {
+    "x": 61600.0,
+    "y": 72375.0,
+    "z": 9000,
+    "width": 33300.0,
+    "height": 24000.0
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "projections": {
+      "Category": [
+        {
+          "queryRef": "Data.14vgqpy1xbzasr1g68vql17hz4ef",
+          "active": true
+        },
+        {
+          "queryRef": "Data.Product Sub-Category",
+          "active": true
+        },
+        {
+          "queryRef": "Data.14vgqpy1xbzasr1g68vql17hz4ef",
+          "active": true
+        },
+        {
+          "queryRef": "Data.Latitude (generated)",
+          "active": true
+        },
+        {
+          "queryRef": "Data.14vgqpy1xbzasr1g68vql17hz4ef",
+          "active": true
+        },
+        {
+          "queryRef": "Data.Longitude (generated)",
+          "active": true
+        }
+      ]
+    },
+    "prototypeQuery": {
+      "Version": 2,
+      "From": [
+        {
+          "Name": "d",
+          "Entity": "Data",
+          "Type": 0
+        }
+      ],
+      "Select": [
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "14vgqpy1xbzasr1g68vql17hz4ef"
+          },
+          "Name": "Data.14vgqpy1xbzasr1g68vql17hz4ef"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Product Sub-Category"
+          },
+          "Name": "Data.Product Sub-Category"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "14vgqpy1xbzasr1g68vql17hz4ef"
+          },
+          "Name": "Data.14vgqpy1xbzasr1g68vql17hz4ef"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Latitude (generated)"
+          },
+          "Name": "Data.Latitude (generated)"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "14vgqpy1xbzasr1g68vql17hz4ef"
+          },
+          "Name": "Data.14vgqpy1xbzasr1g68vql17hz4ef"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Longitude (generated)"
+          },
+          "Name": "Data.Longitude (generated)"
+        }
+      ]
+    }
+  },
+  "visualContainerObjects": {
+    "title": [
+      {
+        "properties": {
+          "text": {
+            "expr": {
+              "Literal": {
+                "Value": "'Q8'"
+              }
+            }
+          },
+          "show": {
+            "expr": {
+              "Literal": {
+                "Value": "true"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "filters": [
+    {
+      "target": {
+        "table": "Data",
+        "column": "Customer Segment"
+      },
+      "filterType": "categorical",
+      "operator": "In",
+      "values": [
+        "\"Corporate\""
+      ]
+    },
+    {
+      "target": {
+        "table": "Data",
+        "column": "Product Sub-Category"
+      },
+      "filterType": "categorical",
+      "operator": "In",
+      "values": [
+        "\"Envelopes\""
+      ]
+    },
+    {
+      "target": {
+        "table": "Data",
+        "column": "yr"
+      },
+      "filterType": "categorical",
+      "operator": "In",
+      "values": [
+        "2012"
+      ]
+    }
+  ]
+}

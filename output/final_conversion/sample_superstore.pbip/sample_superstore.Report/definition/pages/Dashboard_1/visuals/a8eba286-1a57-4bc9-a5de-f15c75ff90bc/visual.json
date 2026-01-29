@@ -1,0 +1,155 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visual/1.0.0/schema.json",
+  "name": "a8eba286-1a57-4bc9-a5de-f15c75ff90bc",
+  "visualType": "clusteredBarChart",
+  "position": {
+    "x": 800.0,
+    "y": 34375.0,
+    "z": 4000,
+    "width": 29900.0,
+    "height": 24000.0
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "projections": {
+      "Category": [
+        {
+          "queryRef": "Data.14vgqpy1xbzasr1g68vql17hz4ef",
+          "active": true
+        },
+        {
+          "queryRef": "Data.14vgqpy1xbzasr1g68vql17hz4ef",
+          "active": true
+        },
+        {
+          "queryRef": "Data.Product Sub-Category",
+          "active": true
+        }
+      ],
+      "Values": [
+        {
+          "queryRef": "Data.Profit",
+          "active": true
+        }
+      ]
+    },
+    "prototypeQuery": {
+      "Version": 2,
+      "From": [
+        {
+          "Name": "d",
+          "Entity": "Data",
+          "Type": 0
+        }
+      ],
+      "Select": [
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "14vgqpy1xbzasr1g68vql17hz4ef"
+          },
+          "Name": "Data.14vgqpy1xbzasr1g68vql17hz4ef"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "14vgqpy1xbzasr1g68vql17hz4ef"
+          },
+          "Name": "Data.14vgqpy1xbzasr1g68vql17hz4ef"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Product Sub-Category"
+          },
+          "Name": "Data.Product Sub-Category"
+        },
+        {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Source": "d"
+                  }
+                },
+                "Property": "Profit"
+              }
+            },
+            "Function": 0
+          },
+          "Name": "sum(Data.Profit)"
+        }
+      ]
+    }
+  },
+  "visualContainerObjects": {
+    "title": [
+      {
+        "properties": {
+          "text": {
+            "expr": {
+              "Literal": {
+                "Value": "'Q4'"
+              }
+            }
+          },
+          "show": {
+            "expr": {
+              "Literal": {
+                "Value": "true"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "filters": [
+    {
+      "target": {
+        "table": "Data",
+        "column": "City"
+      },
+      "filterType": "categorical",
+      "operator": "In",
+      "values": [
+        "\"Boca Raton\""
+      ]
+    },
+    {
+      "target": {
+        "table": "Data",
+        "column": "Product Sub-Category"
+      },
+      "filterType": "categorical",
+      "operator": "In",
+      "values": [
+        "\"Computer Peripherals\""
+      ]
+    },
+    {
+      "target": {
+        "table": "Data",
+        "column": "yr"
+      },
+      "filterType": "categorical",
+      "operator": "In",
+      "values": [
+        "2010"
+      ]
+    }
+  ]
+}
