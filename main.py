@@ -105,12 +105,12 @@ class TableauToPowerBIConverter:
         worksheets_dict = {ws.name: ws for ws in workbook.worksheets}
         
         for worksheet in workbook.worksheets:
-            result = self.visual_mapper.map_worksheet(worksheet)
+            result = self.visual_mapper.map_worksheet(worksheet, workbook)
             visual_results.append(result)
         
         # Map dashboards to pages
         for dashboard in workbook.dashboards:
-            page = self.visual_mapper.map_dashboard_to_page(dashboard, worksheets_dict)
+            page = self.visual_mapper.map_dashboard_to_page(dashboard, worksheets_dict, workbook)
             report.pages.append(page)
         
         # If no dashboards, create pages from worksheets
@@ -340,13 +340,13 @@ def convert_pbitools(workbook: str, output_dir: str, no_genai: bool,
         worksheets_dict = {ws.name: ws for ws in wb.worksheets}
         
         for dashboard in wb.dashboards:
-            page = visual_mapper.map_dashboard_to_page(dashboard, worksheets_dict)
+            page = visual_mapper.map_dashboard_to_page(dashboard, worksheets_dict, wb)
             report.pages.append(page)
         
         # If no dashboards, create pages from worksheets
         if not wb.dashboards:
             for ws in wb.worksheets:
-                result = visual_mapper.map_worksheet(ws)
+                result = visual_mapper.map_worksheet(ws, wb)
                 from models.powerbi_models import PowerBIPage
                 page = PowerBIPage(
                     name=ws.name.replace(" ", "_"),
@@ -489,7 +489,7 @@ def validate(workbook: str, output_path: Optional[str], report_format: str):
         
         # Map visuals
         visual_mapper = VisualMapper()
-        visual_results = [visual_mapper.map_worksheet(ws) for ws in wb.worksheets]
+        visual_results = [visual_mapper.map_worksheet(ws, wb) for ws in wb.worksheets]
         
         # Generate validation report
         validator = ValidationReportGenerator()
@@ -793,11 +793,11 @@ def to_pbix(workbook: str, output_path: str, genai: bool):
         worksheets_dict = {ws.name: ws for ws in workbook_model.worksheets}
         
         for worksheet in workbook_model.worksheets:
-            VisualMapper().map_worksheet(worksheet)
+            VisualMapper().map_worksheet(worksheet, workbook_model)
         
         # Map dashboards to pages
         for dashboard in workbook_model.dashboards:
-            page = VisualMapper().map_dashboard_to_page(dashboard, worksheets_dict)
+            page = VisualMapper().map_dashboard_to_page(dashboard, worksheets_dict, workbook_model)
             powerbi_report.pages.append(page)
         
         # Build PBIX file directly
@@ -934,11 +934,11 @@ def to_pbit(workbook: str, output_path: str, genai: bool):
         worksheets_dict = {ws.name: ws for ws in workbook_model.worksheets}
         
         for worksheet in workbook_model.worksheets:
-            VisualMapper().map_worksheet(worksheet)
+            VisualMapper().map_worksheet(worksheet, workbook_model)
         
         # Map dashboards to pages
         for dashboard in workbook_model.dashboards:
-            page = VisualMapper().map_dashboard_to_page(dashboard, worksheets_dict)
+            page = VisualMapper().map_dashboard_to_page(dashboard, worksheets_dict, workbook_model)
             powerbi_report.pages.append(page)
         
         # Build PBIT file

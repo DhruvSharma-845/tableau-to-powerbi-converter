@@ -1,0 +1,58 @@
+table 'Orders (Sample-Superstore-Subset-Excel_0)_3'
+    lineageTag: decbfb96-e7fa-4ae6-a591-37c0742cf96f
+
+    column federated.14vgqpy1xbzasr1g68vql17hz4ef
+        dataType: string
+        lineageTag: f339312e-40ac-4160-a95e-d6499bb48c83
+
+    column Latitude (generated)
+        dataType: string
+        lineageTag: 628d981f-01be-4921-928b-3e3368630e5d
+
+    column sum_Profit_qk
+        dataType: string
+        lineageTag: 342e5ba2-e471-4f5b-bfdb-87a291f92cea
+
+    column sum_Shipping Cost_qk
+        dataType: string
+        lineageTag: 64b1fa2c-bf94-4637-aa8e-65263f72f88f
+
+    column Measure Names
+        dataType: string
+        lineageTag: 653255d8-fb5c-4ecd-97d2-1c35e9a9e1b6
+
+    column none_Product Sub-Category_nk
+        dataType: string
+        lineageTag: bb454154-56cf-4d29-b2d4-8ef65cebc0f2
+
+    column none_Customer Segment_nk
+        dataType: string
+        lineageTag: 95181f0a-7644-4bf0-a052-3042aaf8908e
+
+    column Multiple Values
+        dataType: string
+        lineageTag: 40e18098-6bf7-41f0-9bc1-abeac910f87a
+
+    column Longitude (generated)
+        dataType: string
+        lineageTag: f2445b47-8c9e-461b-a361-5cea6baaba27
+
+    column sum_Sales_qk
+        dataType: string
+        lineageTag: 54c3f0fd-8301-412a-b877-214557b48e19
+
+    column avg_Discount_qk
+        dataType: string
+        lineageTag: b0319c24-ac16-466e-9086-a410da6e6d25
+
+    column sum_Quantity ordered new_qk
+        dataType: string
+        lineageTag: 6dfc79d8-3ee6-4b16-b7da-f65e418f3123
+
+    column none_Product Name_nk
+        dataType: string
+        lineageTag: fe057d8e-340a-48a4-9536-f939d42e97b3
+
+    column none_Product Category_nk
+        dataType: string
+        lineageTag: e55c6ca8-f533-46de-ab54-f031c9329c03

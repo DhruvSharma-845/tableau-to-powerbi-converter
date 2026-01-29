@@ -1,0 +1,28 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/1.0.0/schema.json",
+  "id": "5aa413e9-b3c8-4838-937b-52155f6b8b8c",
+  "name": "sample_superstore",
+  "themeCollection": {
+    "baseTheme": {
+      "name": "CY24SU02",
+      "version": "5.0.0",
+      "type": "default"
+    }
+  },
+  "layoutOptimization": "horizontal",
+  "pages": [
+    {
+      "name": "Dashboard_1",
+      "displayName": "Dashboard 1"
+    }
+  ],
+  "config": {
+    "version": "5.59",
+    "settings": {
+      "isPersistentUserStateDisabled": false,
+      "hideVisualContainerHeader": false,
+      "useDefaultAggregateDisplayName": true
+    }
+  },
+  "resourcePackages": []
+}

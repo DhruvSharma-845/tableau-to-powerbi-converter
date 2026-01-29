@@ -1,0 +1,148 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visual/1.0.0/schema.json",
+  "name": "47900873-7050-4337-a261-429d319d226d",
+  "visualType": "clusteredBarChart",
+  "position": {
+    "x": 800.0,
+    "y": 34375.0,
+    "z": 0,
+    "width": 29900.0,
+    "height": 24000.0
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "projections": {
+      "Category": [
+        {
+          "queryRef": "Data.federated.14vgqpy1xbzasr1g68vql17hz4ef",
+          "active": true
+        },
+        {
+          "queryRef": "Data.sum:Profit:qk",
+          "active": true
+        },
+        {
+          "queryRef": "Data.federated.14vgqpy1xbzasr1g68vql17hz4ef",
+          "active": true
+        },
+        {
+          "queryRef": "Data.none:Product Sub-Category:nk",
+          "active": true
+        }
+      ]
+    },
+    "prototypeQuery": {
+      "Version": 2,
+      "From": [
+        {
+          "Name": "d",
+          "Entity": "Data",
+          "Type": 0
+        }
+      ],
+      "Select": [
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "federated.14vgqpy1xbzasr1g68vql17hz4ef"
+          },
+          "Name": "Data.federated.14vgqpy1xbzasr1g68vql17hz4ef"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "sum:Profit:qk"
+          },
+          "Name": "Data.sum:Profit:qk"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "federated.14vgqpy1xbzasr1g68vql17hz4ef"
+          },
+          "Name": "Data.federated.14vgqpy1xbzasr1g68vql17hz4ef"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "none:Product Sub-Category:nk"
+          },
+          "Name": "Data.none:Product Sub-Category:nk"
+        }
+      ]
+    }
+  },
+  "visualContainerObjects": {
+    "title": [
+      {
+        "properties": {
+          "text": {
+            "expr": {
+              "Literal": {
+                "Value": "'Q4'"
+              }
+            }
+          },
+          "show": {
+            "expr": {
+              "Literal": {
+                "Value": "true"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "filters": [
+    {
+      "target": {
+        "table": "Data",
+        "column": "federated.14vgqpy1xbzasr1g68vql17hz4ef].[none:City:nk"
+      },
+      "filterType": "categorical",
+      "operator": "In",
+      "values": [
+        "\"Boca Raton\""
+      ]
+    },
+    {
+      "target": {
+        "table": "Data",
+        "column": "federated.14vgqpy1xbzasr1g68vql17hz4ef].[none:Product Sub-Category:nk"
+      },
+      "filterType": "categorical",
+      "operator": "In",
+      "values": [
+        "\"Computer Peripherals\""
+      ]
+    },
+    {
+      "target": {
+        "table": "Data",
+        "column": "federated.14vgqpy1xbzasr1g68vql17hz4ef].[yr:Order Date:ok"
+      },
+      "filterType": "categorical",
+      "operator": "In",
+      "values": [
+        "2010"
+      ]
+    }
+  ]
+}

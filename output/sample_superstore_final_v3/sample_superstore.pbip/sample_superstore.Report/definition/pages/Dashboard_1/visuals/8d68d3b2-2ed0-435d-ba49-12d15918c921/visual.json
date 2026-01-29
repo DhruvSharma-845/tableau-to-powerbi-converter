@@ -1,0 +1,37 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visual/1.0.0/schema.json",
+  "name": "8d68d3b2-2ed0-435d-ba49-12d15918c921",
+  "visualType": "clusteredBarChart",
+  "position": {
+    "x": 34200.0,
+    "y": 31875.0,
+    "z": 5000,
+    "width": 33300.0,
+    "height": 24000.0
+  },
+  "visual": {
+    "visualType": "clusteredBarChart"
+  },
+  "visualContainerObjects": {
+    "title": [
+      {
+        "properties": {
+          "text": {
+            "expr": {
+              "Literal": {
+                "Value": "'Q5'"
+              }
+            }
+          },
+          "show": {
+            "expr": {
+              "Literal": {
+                "Value": "true"
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+}

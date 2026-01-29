@@ -1,0 +1,58 @@
+table 'Orders (Sample-Superstore-Subset-Excel_0)_6'
+    lineageTag: 55d13c64-97d6-4e1a-8483-d7bdece15616
+
+    column Unnamed
+        dataType: string
+        lineageTag: db576879-0f6b-4220-a18f-5829eb7c70eb
+
+    column Longitude (generated)
+        dataType: string
+        lineageTag: 71b50209-5542-4791-b8eb-bcb31aa6ff52
+
+    column Product Category
+        dataType: string
+        lineageTag: 7f09b640-8a72-4953-be9a-99f39ccec430
+
+    column Quantity ordered new
+        dataType: string
+        lineageTag: 294bf669-af3e-4d48-a630-18731c49fe44
+
+    column Profit
+        dataType: string
+        lineageTag: 0cb805bc-0acf-4451-81a3-876be24ae91c
+
+    column Latitude (generated)
+        dataType: string
+        lineageTag: 7b6d6f55-84a0-414d-8506-bb244e7debdc
+
+    column Multiple Values
+        dataType: string
+        lineageTag: ec6091a5-d1b3-411f-b1c9-dcd0f229b2ef
+
+    column Product Name
+        dataType: string
+        lineageTag: 019a4042-856a-4f1c-8955-d272bb772941
+
+    column Discount
+        dataType: string
+        lineageTag: 855eb9eb-8385-459a-9b20-b5c2268d974e
+
+    column Sales
+        dataType: string
+        lineageTag: e6a4f1e3-ec4d-4148-a123-6fa78472f8d5
+
+    column 14vgqpy1xbzasr1g68vql17hz4ef
+        dataType: string
+        lineageTag: 37c553a2-8dd7-44d4-8656-1eb0feca9cb8
+
+    column Shipping Cost
+        dataType: string
+        lineageTag: af659ac9-ff92-4716-97a2-a0f4df5b7e8c
+
+    column Product Sub-Category
+        dataType: string
+        lineageTag: 97e272c2-3378-4634-93bb-36a83e5bb15e
+
+    column Customer Segment
+        dataType: string
+        lineageTag: 80b2a6ad-50d7-4206-92ea-832fa1394ed5

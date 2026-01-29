@@ -1,0 +1,134 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visual/1.0.0/schema.json",
+  "name": "c228a418-cea7-4d3c-b451-8f1dd11c542e",
+  "visualType": "clusteredBarChart",
+  "position": {
+    "x": 1200.0,
+    "y": 69250.0,
+    "z": 8000,
+    "width": 33300.0,
+    "height": 24000.0
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "projections": {
+      "Category": [
+        {
+          "queryRef": "Data.14vgqpy1xbzasr1g68vql17hz4ef",
+          "active": true
+        },
+        {
+          "queryRef": "Data.14vgqpy1xbzasr1g68vql17hz4ef",
+          "active": true
+        }
+      ],
+      "Values": [
+        {
+          "queryRef": "Data.Profit",
+          "active": true
+        },
+        {
+          "queryRef": "Data.Sales",
+          "active": true
+        }
+      ]
+    },
+    "prototypeQuery": {
+      "Version": 2,
+      "From": [
+        {
+          "Name": "d",
+          "Entity": "Data",
+          "Type": 0
+        }
+      ],
+      "Select": [
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "14vgqpy1xbzasr1g68vql17hz4ef"
+          },
+          "Name": "Data.14vgqpy1xbzasr1g68vql17hz4ef"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "14vgqpy1xbzasr1g68vql17hz4ef"
+          },
+          "Name": "Data.14vgqpy1xbzasr1g68vql17hz4ef"
+        },
+        {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Source": "d"
+                  }
+                },
+                "Property": "Profit"
+              }
+            },
+            "Function": 0
+          },
+          "Name": "sum(Data.Profit)"
+        },
+        {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Source": "d"
+                  }
+                },
+                "Property": "Sales"
+              }
+            },
+            "Function": 0
+          },
+          "Name": "sum(Data.Sales)"
+        }
+      ]
+    }
+  },
+  "visualContainerObjects": {
+    "title": [
+      {
+        "properties": {
+          "text": {
+            "expr": {
+              "Literal": {
+                "Value": "'Q7'"
+              }
+            }
+          },
+          "show": {
+            "expr": {
+              "Literal": {
+                "Value": "true"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "filters": [
+    {
+      "target": {
+        "table": "Data",
+        "column": "Product Name"
+      },
+      "filterType": "categorical"
+    }
+  ]
+}

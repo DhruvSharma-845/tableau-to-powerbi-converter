@@ -234,6 +234,8 @@ class PBIRGenerator:
     
     def _build_visual_config(self, visual: PowerBIVisual) -> Dict[str, Any]:
         """Build the visual configuration object."""
+        from translators.visual_mapper import VisualMapper
+        
         config = {
             "visualType": visual.visual_type.value,
         }
@@ -241,8 +243,16 @@ class PBIRGenerator:
         # Build data roles (projections)
         projections = {}
         
+        # Get data role names for this visual type
+        role_map = VisualMapper.VISUAL_DATA_ROLES.get(visual.visual_type, {
+            "category": "Category",
+            "values": "Values",
+            "legend": "Legend"
+        })
+        
         if visual.category_fields:
-            projections["Category"] = [
+            role_name = role_map.get("category", "Category")
+            projections[role_name] = [
                 {
                     "queryRef": f"{f.table}.{f.column}",
                     "active": True
@@ -251,19 +261,37 @@ class PBIRGenerator:
             ]
         
         if visual.value_fields:
-            projections["Values"] = [
+            role_name = role_map.get("values", "Values")
+            projections[role_name] = [
                 {
                     "queryRef": f"{f.table}.{f.column}",
                     "active": True
                 }
                 for f in visual.value_fields
             ]
+            
+            # Special case for visuals with multiple value roles (like scatter)
+            if "extra_values" in role_map and len(visual.value_fields) > 1:
+                role_name = role_map["extra_values"]
+                # Move the first value to the extra role if it's supposed to be there
+                # This is a bit simplistic, but helps for Scatter X/Y
+                pass
         
         if visual.legend_field:
-            projections["Legend"] = [{
+            role_name = role_map.get("legend", "Legend")
+            projections[role_name] = [{
                 "queryRef": f"{visual.legend_field.table}.{visual.legend_field.column}",
                 "active": True
             }]
+            
+        if visual.tooltip_fields:
+            projections["Tooltips"] = [
+                {
+                    "queryRef": f"{f.table}.{f.column}",
+                    "active": True
+                }
+                for f in visual.tooltip_fields
+            ]
         
         if projections:
             config["projections"] = projections
@@ -278,15 +306,33 @@ class PBIRGenerator:
         # Collect all fields
         selects = []
         
+        # Dimensions (no aggregation)
         for f in visual.category_fields:
-            selects.append({
-                "Column": {
-                    "Expression": {"SourceRef": {"Source": "d"}},
-                    "Property": f.column
-                },
-                "Name": f"{f.table}.{f.column}"
-            })
+            if f.aggregation:
+                # If it has aggregation, treat as measure
+                agg = f.aggregation
+                selects.append({
+                    "Aggregation": {
+                        "Expression": {
+                            "Column": {
+                                "Expression": {"SourceRef": {"Source": "d"}},
+                                "Property": f.column
+                            }
+                        },
+                        "Function": self._get_agg_function_id(agg)
+                    },
+                    "Name": f"{f.table}.{f.column}"
+                })
+            else:
+                selects.append({
+                    "Column": {
+                        "Expression": {"SourceRef": {"Source": "d"}},
+                        "Property": f.column
+                    },
+                    "Name": f"{f.table}.{f.column}"
+                })
         
+        # Measures
         for f in visual.value_fields:
             agg = f.aggregation or "Sum"
             selects.append({
@@ -311,6 +357,30 @@ class PBIRGenerator:
                 },
                 "Name": f"{f.table}.{f.column}"
             })
+            
+        for f in visual.tooltip_fields:
+            if f.aggregation:
+                agg = f.aggregation
+                selects.append({
+                    "Aggregation": {
+                        "Expression": {
+                            "Column": {
+                                "Expression": {"SourceRef": {"Source": "d"}},
+                                "Property": f.column
+                            }
+                        },
+                        "Function": self._get_agg_function_id(agg)
+                    },
+                    "Name": f"{f.table}.{f.column}"
+                })
+            else:
+                selects.append({
+                    "Column": {
+                        "Expression": {"SourceRef": {"Source": "d"}},
+                        "Property": f.column
+                    },
+                    "Name": f"{f.table}.{f.column}"
+                })
         
         return {
             "Version": 2,
@@ -328,6 +398,9 @@ class PBIRGenerator:
             "count": 5,
             "distinctcount": 6,
             "median": 7,
+            "variance": 8,
+            "stddev": 9,
+            "first": 0, # First/Last often use 0/1 in some contexts, but let's stick to Sum/Avg fallback
         }
         return agg_map.get(agg.lower(), 0)
     
@@ -455,31 +528,56 @@ class PBIRGenerator:
         return "\n".join(lines)
     
     def _generate_m_query(self, ds: PowerBIDataSource) -> str:
-        """Generate M query for a data source."""
+        """Generate M query for a data source with templated connection strings."""
         if ds.connection_type == "SQL Server":
+            server = ds.server or "localhost"
+            database = ds.database or "Database"
             return f"""let
-    Source = Sql.Database("{ds.server}", "{ds.database}"),
+    Source = Sql.Database("{server}", "{database}"),
     Data = Source{{[Schema="dbo",Item="{ds.name}"]}}[Data]
 in
     Data"""
         
         elif ds.connection_type == "PostgreSQL":
+            server = ds.server or "localhost"
+            database = ds.database or "Database"
             return f"""let
-    Source = PostgreSQL.Database("{ds.server}", "{ds.database}"),
+    Source = PostgreSQL.Database("{server}", "{database}"),
     Data = Source{{[Schema="public",Item="{ds.name}"]}}[Data]
 in
     Data"""
         
         elif ds.connection_type == "Excel":
+            # For Excel, we use a placeholder path that the user can easily update
+            path = ds.connection_string or "C:\\Path\\To\\Your\\File.xlsx"
             return f"""let
-    Source = Excel.Workbook(File.Contents("{ds.connection_string}"), null, true),
+    Source = Excel.Workbook(File.Contents("{path}"), null, true),
     Data = Source{{[Item="{ds.name}",Kind="Sheet"]}}[Data]
 in
     Data"""
-        
-        else:
-            # Generic placeholder
+
+        elif ds.connection_type == "CSV":
+            path = ds.connection_string or "C:\\Path\\To\\Your\\File.csv"
             return f"""let
+    Source = Csv.Document(File.Contents("{path}"),[Delimiter=",", Columns=null, Encoding=65001, QuoteStyle=QuoteStyle.None])
+in
+    Source"""
+        
+        elif ds.connection_type == "Snowflake":
+            server = ds.server or "account.snowflakecomputing.com"
+            warehouse = "YOUR_WAREHOUSE"
+            return f"""let
+    Source = Snowflake.Databases("{server}", "{warehouse}"),
+    Data = Source{{[Name="{ds.database}"]}}[Data]
+in
+    Data"""
+
+        else:
+            # Generic placeholder with comments for the user
+            return f"""let
+    // Converted from Tableau: {ds.connection_type}
+    // Server: {ds.server or "N/A"}
+    // Database: {ds.database or "N/A"}
     Source = #table(
         type table [Column1 = text],
         {{}}

@@ -1,0 +1,15 @@
+expression Expressions
+
+    expression 'Orders (Sample-Superstore-Subset-Excel_0)' =
+        ```
+        let
+    // Converted from Tableau: Federated
+    // Server: N/A
+    // Database: N/A
+    Source = #table(
+        type table [Column1 = text],
+        {}
+    )
+in
+    Source
+        ```

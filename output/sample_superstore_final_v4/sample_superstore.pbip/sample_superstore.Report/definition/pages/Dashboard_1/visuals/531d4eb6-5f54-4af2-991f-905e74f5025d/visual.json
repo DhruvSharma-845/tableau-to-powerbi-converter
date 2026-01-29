@@ -1,0 +1,240 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visual/1.0.0/schema.json",
+  "name": "531d4eb6-5f54-4af2-991f-905e74f5025d",
+  "visualType": "clusteredBarChart",
+  "position": {
+    "x": 63400.0,
+    "y": 40750.0,
+    "z": 7000,
+    "width": 33300.0,
+    "height": 24000.0
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "projections": {
+      "Category": [
+        {
+          "queryRef": "Data.14vgqpy1xbzasr1g68vql17hz4ef",
+          "active": true
+        },
+        {
+          "queryRef": "Data.14vgqpy1xbzasr1g68vql17hz4ef",
+          "active": true
+        },
+        {
+          "queryRef": "Data.Customer Segment",
+          "active": true
+        },
+        {
+          "queryRef": "Data.14vgqpy1xbzasr1g68vql17hz4ef",
+          "active": true
+        },
+        {
+          "queryRef": "Data.Product Category",
+          "active": true
+        },
+        {
+          "queryRef": "Data.14vgqpy1xbzasr1g68vql17hz4ef",
+          "active": true
+        },
+        {
+          "queryRef": "Data.Product Name",
+          "active": true
+        }
+      ],
+      "Values": [
+        {
+          "queryRef": "Data.Shipping Cost",
+          "active": true
+        }
+      ]
+    },
+    "prototypeQuery": {
+      "Version": 2,
+      "From": [
+        {
+          "Name": "d",
+          "Entity": "Data",
+          "Type": 0
+        }
+      ],
+      "Select": [
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "14vgqpy1xbzasr1g68vql17hz4ef"
+          },
+          "Name": "Data.14vgqpy1xbzasr1g68vql17hz4ef"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "14vgqpy1xbzasr1g68vql17hz4ef"
+          },
+          "Name": "Data.14vgqpy1xbzasr1g68vql17hz4ef"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Customer Segment"
+          },
+          "Name": "Data.Customer Segment"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "14vgqpy1xbzasr1g68vql17hz4ef"
+          },
+          "Name": "Data.14vgqpy1xbzasr1g68vql17hz4ef"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Product Category"
+          },
+          "Name": "Data.Product Category"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "14vgqpy1xbzasr1g68vql17hz4ef"
+          },
+          "Name": "Data.14vgqpy1xbzasr1g68vql17hz4ef"
+        },
+        {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Source": "d"
+              }
+            },
+            "Property": "Product Name"
+          },
+          "Name": "Data.Product Name"
+        },
+        {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Source": "d"
+                  }
+                },
+                "Property": "Shipping Cost"
+              }
+            },
+            "Function": 0
+          },
+          "Name": "sum(Data.Shipping Cost)"
+        }
+      ]
+    }
+  },
+  "visualContainerObjects": {
+    "title": [
+      {
+        "properties": {
+          "text": {
+            "expr": {
+              "Literal": {
+                "Value": "'Q6'"
+              }
+            }
+          },
+          "show": {
+            "expr": {
+              "Literal": {
+                "Value": "true"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "filters": [
+    {
+      "target": {
+        "table": "Data",
+        "column": "Customer Segment"
+      },
+      "filterType": "categorical",
+      "operator": "In",
+      "values": [
+        "\"Corporate\""
+      ]
+    },
+    {
+      "target": {
+        "table": "Data",
+        "column": "Product Category"
+      },
+      "filterType": "categorical",
+      "operator": "In",
+      "values": [
+        "\"Office Supplies\""
+      ]
+    },
+    {
+      "target": {
+        "table": "Data",
+        "column": "Product Name"
+      },
+      "filterType": "categorical",
+      "operator": "In",
+      "values": [
+        "\"Belkin 105-Key Black Keyboard\"",
+        "\"Belkin 107-key enhanced keyboard, USB/PS/2 interface\"",
+        "\"Belkin 325VA UPS Surge Protector, 6'\"",
+        "\"Belkin 5 Outlet SurgeMaster\u2122 Power Centers\"",
+        "\"Belkin 6 Outlet Metallic Surge Strip\"",
+        "\"Belkin 7 Outlet SurgeMaster Surge Protector with Phone Protection\"",
+        "\"Belkin 8 Outlet Surge Protector\"",
+        "\"Belkin 8 Outlet SurgeMaster II Gold Surge Protector\"",
+        "\"Belkin 8 Outlet SurgeMaster II Gold Surge Protector with Phone Protection\"",
+        "\"Belkin ErgoBoard\u2122 Keyboard\"",
+        "\"Belkin F5C206VTEL 6 Outlet Surge\"",
+        "\"Belkin F9M820V08 8 Outlet Surge\"",
+        "\"Belkin MediaBoard 104- Keyboard\"",
+        "\"Belkin OmniView SE Rackmount Kit\"",
+        "\"Belkin Premiere Surge Master II 8-outlet surge protector\""
+      ]
+    },
+    {
+      "target": {
+        "table": "Data",
+        "column": "State or Province"
+      },
+      "filterType": "categorical",
+      "operator": "In",
+      "values": [
+        "\"California\""
+      ]
+    }
+  ]
+}

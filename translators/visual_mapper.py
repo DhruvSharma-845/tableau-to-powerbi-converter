@@ -11,7 +11,7 @@ from enum import Enum
 
 from models.tableau_models import (
     TableauWorksheet, TableauMark, MarkType, FieldMapping, AggregationType,
-    TableauDashboard
+    TableauDashboard, TableauWorkbook
 )
 from models.powerbi_models import (
     PowerBIVisual, PowerBIVisualType, VisualDataField, PowerBIPage
@@ -72,6 +72,87 @@ class VisualMapper:
         "heatmap": PowerBIVisualType.MATRIX,
         "kpi": PowerBIVisualType.KPI,
         "gauge": PowerBIVisualType.GAUGE,
+        "card": PowerBIVisualType.CARD,
+        "table": PowerBIVisualType.TABLE,
+        "matrix": PowerBIVisualType.MATRIX,
+    }
+    
+    # Data role mapping for different visual types
+    # Defines which shelves map to which data roles in Power BI
+    VISUAL_DATA_ROLES: Dict[PowerBIVisualType, Dict[str, str]] = {
+        PowerBIVisualType.CLUSTERED_BAR: {
+            "category": "Category",
+            "values": "Values",
+            "legend": "Series",
+        },
+        PowerBIVisualType.STACKED_BAR: {
+            "category": "Category",
+            "values": "Values",
+            "legend": "Series",
+        },
+        PowerBIVisualType.CLUSTERED_COLUMN: {
+            "category": "Category",
+            "values": "Values",
+            "legend": "Series",
+        },
+        PowerBIVisualType.STACKED_COLUMN: {
+            "category": "Category",
+            "values": "Values",
+            "legend": "Series",
+        },
+        PowerBIVisualType.LINE_CHART: {
+            "category": "Category",
+            "values": "Y",
+            "legend": "Series",
+        },
+        PowerBIVisualType.AREA_CHART: {
+            "category": "Category",
+            "values": "Y",
+            "legend": "Series",
+        },
+        PowerBIVisualType.STACKED_AREA: {
+            "category": "Category",
+            "values": "Y",
+            "legend": "Series",
+        },
+        PowerBIVisualType.PIE_CHART: {
+            "category": "Legend",
+            "values": "Values",
+        },
+        PowerBIVisualType.DONUT_CHART: {
+            "category": "Legend",
+            "values": "Values",
+        },
+        PowerBIVisualType.SCATTER_CHART: {
+            "category": "Details",
+            "values": "Y",
+            "extra_values": "X",
+            "legend": "Legend",
+            "size": "Size",
+        },
+        PowerBIVisualType.MAP: {
+            "category": "Location",
+            "values": "Size",
+            "legend": "Legend",
+        },
+        PowerBIVisualType.FILLED_MAP: {
+            "category": "Location",
+            "values": "Values",
+            "legend": "Legend",
+        },
+        PowerBIVisualType.TABLE: {
+            "category": "Values",
+        },
+        PowerBIVisualType.MATRIX: {
+            "rows": "Rows",
+            "columns": "Columns",
+            "values": "Values",
+        },
+        PowerBIVisualType.TREEMAP: {
+            "category": "Group",
+            "values": "Values",
+            "legend": "Details",
+        },
     }
     
     # Custom visual recommendations (using custom_visuals module)
@@ -83,21 +164,34 @@ class VisualMapper:
         },
     }
     
-    def __init__(self, default_table_name: str = "Data"):
+    def __init__(self, default_table_name: str = "Data", table_name_map: Dict[str, str] = None):
         """
         Initialize the visual mapper.
         
         Args:
             default_table_name: Default table name for field references
+            table_name_map: Mapping from Tableau datasource names to Power BI table names
         """
         self.default_table = default_table_name
+        self.table_name_map = table_name_map or {}
     
-    def map_worksheet(self, worksheet: TableauWorksheet) -> VisualMappingResult:
+    def set_table_name(self, datasource_name: str, table_name: str) -> None:
+        """Set the table name mapping for a datasource."""
+        self.table_name_map[datasource_name] = table_name
+    
+    def get_table_name(self, datasource_name: str = None) -> str:
+        """Get the Power BI table name for a datasource."""
+        if datasource_name and datasource_name in self.table_name_map:
+            return self.table_name_map[datasource_name]
+        return self.default_table
+    
+    def map_worksheet(self, worksheet: TableauWorksheet, workbook: Optional[TableauWorkbook] = None) -> VisualMappingResult:
         """
         Map a Tableau worksheet to a Power BI visual.
         
         Args:
             worksheet: Tableau worksheet to map
+            workbook: Optional workbook for field metadata lookup
             
         Returns:
             VisualMappingResult with mapped visual and metadata
@@ -129,7 +223,7 @@ class VisualMapper:
         )
         
         # Map data bindings
-        visual = self._map_data_bindings(worksheet, visual, notes, unmapped)
+        visual = self._map_data_bindings(worksheet, visual, notes, unmapped, workbook)
         
         # Map filters
         visual = self._map_filters(worksheet, visual, notes)
@@ -251,55 +345,89 @@ class VisualMapper:
     def _map_data_bindings(self, worksheet: TableauWorksheet, 
                            visual: PowerBIVisual,
                            notes: List[str],
-                           unmapped: List[str]) -> PowerBIVisual:
+                           unmapped: List[str],
+                           workbook: Optional[TableauWorkbook] = None) -> PowerBIVisual:
         """Map Tableau data bindings to Power BI visual bindings."""
         
-        # Map rows and columns to category and value
-        for mapping in worksheet.rows:
-            field = self._create_data_field(mapping)
-            if mapping.aggregation == AggregationType.NONE:
-                visual.category_fields.append(field)
-            else:
-                visual.value_fields.append(field)
+        # Get the appropriate table name
+        table_name = self.get_table_name(worksheet.datasource_name)
         
-        for mapping in worksheet.columns:
-            field = self._create_data_field(mapping)
-            if mapping.aggregation == AggregationType.NONE:
-                visual.category_fields.append(field)
-            else:
-                visual.value_fields.append(field)
+        # Helper to check if a field is a measure
+        def is_measure(m):
+            if m.aggregation != AggregationType.NONE:
+                return True
+            if workbook and worksheet.datasource_name:
+                ds = workbook.get_datasource(worksheet.datasource_name)
+                if ds:
+                    # Try looking up by clean name
+                    field = ds.get_field(m.field) or ds.get_calculated_field(m.field)
+                    if field and field.role == "measure":
+                        return True
+            return False
+
+        # Separate dimensions and measures from rows and columns
+        row_dims = [m for m in worksheet.rows if not is_measure(m)]
+        row_meass = [m for m in worksheet.rows if is_measure(m)]
+        col_dims = [m for m in worksheet.columns if not is_measure(m)]
+        col_meass = [m for m in worksheet.columns if is_measure(m)]
         
+        # Logic for mapping based on visual type
+        if visual.visual_type in [PowerBIVisualType.CLUSTERED_BAR, PowerBIVisualType.STACKED_BAR]:
+            # Bar chart: rows are usually categories, columns are values
+            for m in row_dims + col_dims:
+                visual.category_fields.append(self._create_data_field(m, table_name))
+            for m in col_meass + row_meass:
+                visual.value_fields.append(self._create_data_field(m, table_name))
+                    
+        elif visual.visual_type in [PowerBIVisualType.CLUSTERED_COLUMN, PowerBIVisualType.STACKED_COLUMN, 
+                                  PowerBIVisualType.LINE_CHART, PowerBIVisualType.AREA_CHART, 
+                                  PowerBIVisualType.STACKED_AREA]:
+            # Column/Line/Area chart: columns are usually categories, rows are values
+            for m in col_dims + row_dims:
+                visual.category_fields.append(self._create_data_field(m, table_name))
+            for m in row_meass + col_meass:
+                visual.value_fields.append(self._create_data_field(m, table_name))
+
+        elif visual.visual_type in [PowerBIVisualType.PIE_CHART, PowerBIVisualType.DONUT_CHART]:
+            # Pie/Donut
+            for m in row_dims + col_dims:
+                visual.category_fields.append(self._create_data_field(m, table_name))
+            for m in row_meass + col_meass:
+                visual.value_fields.append(self._create_data_field(m, table_name))
+
+        elif visual.visual_type == PowerBIVisualType.SCATTER_CHART:
+            # Scatter: first measure to X, second to Y
+            all_meass = col_meass + row_meass
+            if len(all_meass) >= 1:
+                visual.category_fields.append(self._create_data_field(all_meass[0], table_name))
+            if len(all_meass) >= 2:
+                visual.value_fields.append(self._create_data_field(all_meass[1], table_name))
+            for m in row_dims + col_dims:
+                visual.tooltip_fields.append(self._create_data_field(m, table_name))
+
+        else:
+            # Default: all dimensions to category, all measures to values
+            for m in row_dims + col_dims:
+                visual.category_fields.append(self._create_data_field(m, table_name))
+            for m in row_meass + col_meass:
+                visual.value_fields.append(self._create_data_field(m, table_name))
+        
+        # If still empty but we have fields, just put everything in Category as a last resort
+        if not visual.category_fields and not visual.value_fields:
+            for m in worksheet.rows + worksheet.columns:
+                visual.category_fields.append(self._create_data_field(m, table_name))
+
         # Map color field to legend
         if worksheet.color_field:
-            visual.legend_field = self._create_data_field(worksheet.color_field)
+            visual.legend_field = self._create_data_field(worksheet.color_field, table_name)
         
         # Map tooltip fields
         for mapping in worksheet.tooltip_fields:
-            visual.tooltip_fields.append(self._create_data_field(mapping))
-        
-        # Size field - not all visuals support this
-        if worksheet.size_field:
-            if visual.visual_type == PowerBIVisualType.SCATTER_CHART:
-                # Scatter chart supports size
-                pass
-            else:
-                unmapped.append(f"Size field: {worksheet.size_field.field}")
-                notes.append("Size encoding not supported for this visual type")
-        
-        # Label fields
-        for mapping in worksheet.label_fields:
-            # Labels are typically shown via data labels setting
-            notes.append(f"Label field '{mapping.field}' - enable data labels in Power BI")
-        
-        # Detail fields - affect aggregation level
-        if worksheet.detail_fields:
-            notes.append("Detail fields affect aggregation - verify granularity")
-            for mapping in worksheet.detail_fields:
-                visual.category_fields.append(self._create_data_field(mapping))
+            visual.tooltip_fields.append(self._create_data_field(mapping, table_name))
         
         return visual
     
-    def _create_data_field(self, mapping: FieldMapping) -> VisualDataField:
+    def _create_data_field(self, mapping: FieldMapping, table_name: str = None) -> VisualDataField:
         """Create a Power BI data field from a Tableau field mapping."""
         # Map aggregation
         agg_map = {
@@ -310,12 +438,18 @@ class VisualMapper:
             AggregationType.MIN: "min",
             AggregationType.MAX: "max",
             AggregationType.MEDIAN: "median",
+            AggregationType.ATTR: "first",  # ATTR becomes FIRST in DAX
             AggregationType.NONE: None,
         }
         
+        # Clean field name (remove brackets if present)
+        field_name = mapping.field
+        if field_name.startswith('[') and field_name.endswith(']'):
+            field_name = field_name[1:-1]
+        
         return VisualDataField(
-            table=self.default_table,
-            column=mapping.field,
+            table=table_name or self.default_table,
+            column=field_name,
             aggregation=agg_map.get(mapping.aggregation),
         )
     
@@ -349,38 +483,58 @@ class VisualMapper:
         
         return visual
     
-    def map_dashboard_to_page(self, dashboard, worksheets: Dict[str, TableauWorksheet]) -> PowerBIPage:
+    def map_dashboard_to_page(self, dashboard, worksheets: Dict[str, TableauWorksheet], workbook: Optional[TableauWorkbook] = None) -> PowerBIPage:
         """
         Map a Tableau dashboard to a Power BI page.
         
         Args:
             dashboard: Tableau dashboard
             worksheets: Dictionary of worksheet name to worksheet
+            workbook: Optional workbook for context
             
         Returns:
             PowerBIPage with mapped visuals
         """
+        # Sanitize page name (remove special characters)
+        page_name = dashboard.name.replace(" ", "_")
+        page_name = ''.join(c if c.isalnum() or c == '_' else '_' for c in page_name)
+        
         page = PowerBIPage(
-            name=dashboard.name.replace(" ", "_"),
+            name=page_name,
             display_name=dashboard.title or dashboard.name,
             width=dashboard.width,
             height=dashboard.height,
             source_tableau_dashboard=dashboard.name,
         )
         
+        # Track z-order for visuals
+        z_order = 0
+        
         # Map each dashboard object
         for obj in dashboard.objects:
             if obj.object_type == "worksheet" and obj.worksheet_name:
                 worksheet = worksheets.get(obj.worksheet_name)
                 if worksheet:
-                    result = self.map_worksheet(worksheet)
+                    # Set table name from worksheet datasource
+                    if worksheet.datasource_name:
+                        table_name = self.get_table_name(worksheet.datasource_name)
+                    else:
+                        table_name = self.default_table
+                    
+                    result = self.map_worksheet(worksheet, workbook)
                     visual = result.powerbi_visual
                     
                     # Set position from dashboard layout
                     visual.x = obj.x
                     visual.y = obj.y
-                    visual.width = obj.width
-                    visual.height = obj.height
+                    visual.width = max(obj.width, 100)  # Minimum width
+                    visual.height = max(obj.height, 100)  # Minimum height
+                    visual.z = z_order
+                    z_order += 1000
+                    
+                    # Store mapping notes in visual config
+                    if result.notes:
+                        visual.translation_notes = result.notes
                     
                     page.visuals.append(visual)
             
@@ -389,11 +543,14 @@ class VisualMapper:
                 text_visual = PowerBIVisual(
                     visual_type=PowerBIVisualType.TEXT_BOX,
                     name=f"text_{obj.name or 'unnamed'}",
+                    title=obj.name or "Text",
                     x=obj.x,
                     y=obj.y,
-                    width=obj.width,
-                    height=obj.height,
+                    width=max(obj.width, 50),
+                    height=max(obj.height, 30),
+                    z=z_order,
                 )
+                z_order += 1000
                 page.visuals.append(text_visual)
             
             elif obj.object_type == "image":
@@ -401,12 +558,63 @@ class VisualMapper:
                 img_visual = PowerBIVisual(
                     visual_type=PowerBIVisualType.IMAGE,
                     name=f"image_{obj.name or 'unnamed'}",
+                    title=obj.name or "Image",
                     x=obj.x,
                     y=obj.y,
-                    width=obj.width,
-                    height=obj.height,
+                    width=max(obj.width, 50),
+                    height=max(obj.height, 50),
+                    z=z_order,
                 )
+                z_order += 1000
                 page.visuals.append(img_visual)
+            
+            elif obj.object_type == "blank":
+                # Skip blank objects (spacing elements)
+                pass
+            
+            elif obj.object_type == "web":
+                # Web page objects - not directly supported
+                # Could be replaced with a shape or image placeholder
+                pass
+        
+        return page
+    
+    def map_worksheet_standalone(self, worksheet: TableauWorksheet, 
+                                  page_width: int = 1280, 
+                                  page_height: int = 720) -> PowerBIPage:
+        """
+        Map a single worksheet to a standalone Power BI page.
+        
+        Args:
+            worksheet: Tableau worksheet
+            page_width: Page width
+            page_height: Page height
+            
+        Returns:
+            PowerBIPage with single visual
+        """
+        page_name = worksheet.name.replace(" ", "_")
+        page_name = ''.join(c if c.isalnum() or c == '_' else '_' for c in page_name)
+        
+        page = PowerBIPage(
+            name=page_name,
+            display_name=worksheet.title or worksheet.name,
+            width=page_width,
+            height=page_height,
+            source_tableau_worksheet=worksheet.name,
+        )
+        
+        result = self.map_worksheet(worksheet, None)
+        visual = result.powerbi_visual
+        
+        # Center the visual on the page with padding
+        padding = 20
+        visual.x = padding
+        visual.y = padding
+        visual.width = page_width - (padding * 2)
+        visual.height = page_height - (padding * 2)
+        
+        page.visuals.append(visual)
         
         return page
     

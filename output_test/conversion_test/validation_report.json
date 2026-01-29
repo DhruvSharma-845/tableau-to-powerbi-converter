@@ -1,0 +1,231 @@
+{
+  "is_valid": true,
+  "errors": 0,
+  "warnings": 4,
+  "issues": [
+    {
+      "severity": "warning",
+      "category": "Reference",
+      "message": "Reference to unknown table: Top Customers",
+      "component": "Measure: Top Customers",
+      "details": "Column reference: 'Top Customers'[Value]",
+      "suggestion": "Verify the table name is correct"
+    },
+    {
+      "severity": "warning",
+      "category": "Reference",
+      "message": "Reference to unknown table: Profit Bin Size",
+      "component": "Measure: Profit Bin Size",
+      "details": "Column reference: 'Profit Bin Size'[Value]",
+      "suggestion": "Verify the table name is correct"
+    },
+    {
+      "severity": "info",
+      "category": "Layout",
+      "message": "Visual extends beyond page width",
+      "component": "Page: Dashboard_1, Visual: Q1",
+      "details": null,
+      "suggestion": null
+    },
+    {
+      "severity": "info",
+      "category": "Layout",
+      "message": "Visual extends beyond page height",
+      "component": "Page: Dashboard_1, Visual: Q1",
+      "details": null,
+      "suggestion": null
+    },
+    {
+      "severity": "info",
+      "category": "Layout",
+      "message": "Visual extends beyond page width",
+      "component": "Page: Dashboard_1, Visual: Q2",
+      "details": null,
+      "suggestion": null
+    },
+    {
+      "severity": "info",
+      "category": "Layout",
+      "message": "Visual extends beyond page height",
+      "component": "Page: Dashboard_1, Visual: Q2",
+      "details": null,
+      "suggestion": null
+    },
+    {
+      "severity": "info",
+      "category": "Layout",
+      "message": "Visual extends beyond page width",
+      "component": "Page: Dashboard_1, Visual: Q3",
+      "details": null,
+      "suggestion": null
+    },
+    {
+      "severity": "info",
+      "category": "Layout",
+      "message": "Visual extends beyond page height",
+      "component": "Page: Dashboard_1, Visual: Q3",
+      "details": null,
+      "suggestion": null
+    },
+    {
+      "severity": "info",
+      "category": "Layout",
+      "message": "Visual extends beyond page width",
+      "component": "Page: Dashboard_1, Visual: Q3",
+      "details": null,
+      "suggestion": null
+    },
+    {
+      "severity": "info",
+      "category": "Layout",
+      "message": "Visual extends beyond page height",
+      "component": "Page: Dashboard_1, Visual: Q3",
+      "details": null,
+      "suggestion": null
+    },
+    {
+      "severity": "info",
+      "category": "Layout",
+      "message": "Visual extends beyond page width",
+      "component": "Page: Dashboard_1, Visual: Q4",
+      "details": null,
+      "suggestion": null
+    },
+    {
+      "severity": "info",
+      "category": "Layout",
+      "message": "Visual extends beyond page height",
+      "component": "Page: Dashboard_1, Visual: Q4",
+      "details": null,
+      "suggestion": null
+    },
+    {
+      "severity": "info",
+      "category": "Layout",
+      "message": "Visual extends beyond page width",
+      "component": "Page: Dashboard_1, Visual: Q5",
+      "details": null,
+      "suggestion": null
+    },
+    {
+      "severity": "info",
+      "category": "Layout",
+      "message": "Visual extends beyond page height",
+      "component": "Page: Dashboard_1, Visual: Q5",
+      "details": null,
+      "suggestion": null
+    },
+    {
+      "severity": "info",
+      "category": "DataBinding",
+      "message": "Visual has no data bindings",
+      "component": "Page: Dashboard_1, Visual: Q5",
+      "details": null,
+      "suggestion": null
+    },
+    {
+      "severity": "info",
+      "category": "Layout",
+      "message": "Visual extends beyond page width",
+      "component": "Page: Dashboard_1, Visual: Q5",
+      "details": null,
+      "suggestion": null
+    },
+    {
+      "severity": "info",
+      "category": "Layout",
+      "message": "Visual extends beyond page height",
+      "component": "Page: Dashboard_1, Visual: Q5",
+      "details": null,
+      "suggestion": null
+    },
+    {
+      "severity": "info",
+      "category": "DataBinding",
+      "message": "Visual has no data bindings",
+      "component": "Page: Dashboard_1, Visual: Q5",
+      "details": null,
+      "suggestion": null
+    },
+    {
+      "severity": "info",
+      "category": "Layout",
+      "message": "Visual extends beyond page width",
+      "component": "Page: Dashboard_1, Visual: Q6",
+      "details": null,
+      "suggestion": null
+    },
+    {
+      "severity": "info",
+      "category": "Layout",
+      "message": "Visual extends beyond page height",
+      "component": "Page: Dashboard_1, Visual: Q6",
+      "details": null,
+      "suggestion": null
+    },
+    {
+      "severity": "info",
+      "category": "Layout",
+      "message": "Visual extends beyond page width",
+      "component": "Page: Dashboard_1, Visual: Q7",
+      "details": null,
+      "suggestion": null
+    },
+    {
+      "severity": "info",
+      "category": "Layout",
+      "message": "Visual extends beyond page height",
+      "component": "Page: Dashboard_1, Visual: Q7",
+      "details": null,
+      "suggestion": null
+    },
+    {
+      "severity": "info",
+      "category": "Layout",
+      "message": "Visual extends beyond page width",
+      "component": "Page: Dashboard_1, Visual: Q8",
+      "details": null,
+      "suggestion": null
+    },
+    {
+      "severity": "info",
+      "category": "Layout",
+      "message": "Visual extends beyond page height",
+      "component": "Page: Dashboard_1, Visual: Q8",
+      "details": null,
+      "suggestion": null
+    },
+    {
+      "severity": "info",
+      "category": "Layout",
+      "message": "Visual extends beyond page width",
+      "component": "Page: Dashboard_1, Visual: Q8",
+      "details": null,
+      "suggestion": null
+    },
+    {
+      "severity": "info",
+      "category": "Layout",
+      "message": "Visual extends beyond page height",
+      "component": "Page: Dashboard_1, Visual: Q8",
+      "details": null,
+      "suggestion": null
+    },
+    {
+      "severity": "warning",
+      "category": "Relationship",
+      "message": "Relationship references unknown column: Row ID",
+      "component": "Relationship: Inferred_Orders (Sample-Superstore-Subset-Excel_0)_8_Orders (Sample-Superstore-Subset-Excel_0)_8",
+      "details": null,
+      "suggestion": "Verify the column name is correct"
+    },
+    {
+      "severity": "warning",
+      "category": "Relationship",
+      "message": "Relationship references unknown column: Row ID",
+      "component": "Relationship: Inferred_Orders (Sample-Superstore-Subset-Excel_0)_8_Orders (Sample-Superstore-Subset-Excel_0)_8",
+      "details": null,
+      "suggestion": "Verify the column name is correct"
+    }
+  ]
+}

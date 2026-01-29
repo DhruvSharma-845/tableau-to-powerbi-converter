@@ -1,0 +1,320 @@
+{
+  "reportName": "sample_superstore",
+  "totalPages": 1,
+  "totalVisuals": 11,
+  "pages": [
+    {
+      "name": "Dashboard_1",
+      "displayName": "Dashboard 1",
+      "width": 1200,
+      "height": 900,
+      "visuals": [
+        {
+          "name": "Q1",
+          "title": "Q1",
+          "visualType": "clusteredBarChart",
+          "position": {
+            "x": 667.0,
+            "y": 12889.0,
+            "width": 98666.0,
+            "height": 86222.0
+          },
+          "categoryFields": [
+            {
+              "table": "Data",
+              "column": "14vgqpy1xbzasr1g68vql17hz4ef"
+            },
+            {
+              "table": "Data",
+              "column": "Latitude (generated)"
+            }
+          ],
+          "valueFields": [],
+          "sourceTableauWorksheet": "Q1",
+          "translationNotes": [
+            "Mapped 1 filters - verify filter behavior"
+          ]
+        },
+        {
+          "name": "Q2",
+          "title": "Q2",
+          "visualType": "clusteredBarChart",
+          "position": {
+            "x": 35400.0,
+            "y": 3625.0,
+            "width": 33300.0,
+            "height": 24000.0
+          },
+          "categoryFields": [
+            {
+              "table": "Data",
+              "column": "14vgqpy1xbzasr1g68vql17hz4ef"
+            },
+            {
+              "table": "Data",
+              "column": "14vgqpy1xbzasr1g68vql17hz4ef"
+            }
+          ],
+          "valueFields": [
+            {
+              "table": "Data",
+              "column": "Discount",
+              "aggregation": "average"
+            },
+            {
+              "table": "Data",
+              "column": "Quantity ordered new",
+              "aggregation": "sum"
+            }
+          ],
+          "sourceTableauWorksheet": "Q2",
+          "translationNotes": []
+        },
+        {
+          "name": "Q3",
+          "title": "Q3",
+          "visualType": "clusteredBarChart",
+          "position": {
+            "x": 69600.0,
+            "y": 5875.0,
+            "width": 29800.0,
+            "height": 20375.0
+          },
+          "categoryFields": [
+            {
+              "table": "Data",
+              "column": "14vgqpy1xbzasr1g68vql17hz4ef"
+            },
+            {
+              "table": "Data",
+              "column": "Multiple Values"
+            }
+          ],
+          "valueFields": [],
+          "sourceTableauWorksheet": "Q3",
+          "translationNotes": [
+            "Mapped 1 filters - verify filter behavior"
+          ]
+        },
+        {
+          "name": "Q3",
+          "title": "Q3",
+          "visualType": "clusteredBarChart",
+          "position": {
+            "x": 86300.0,
+            "y": 27125.0,
+            "width": 14000.0,
+            "height": 7250.0
+          },
+          "categoryFields": [
+            {
+              "table": "Data",
+              "column": "14vgqpy1xbzasr1g68vql17hz4ef"
+            },
+            {
+              "table": "Data",
+              "column": "Multiple Values"
+            }
+          ],
+          "valueFields": [],
+          "sourceTableauWorksheet": "Q3",
+          "translationNotes": [
+            "Mapped 1 filters - verify filter behavior"
+          ]
+        },
+        {
+          "name": "Q4",
+          "title": "Q4",
+          "visualType": "clusteredBarChart",
+          "position": {
+            "x": 800.0,
+            "y": 34375.0,
+            "width": 29900.0,
+            "height": 24000.0
+          },
+          "categoryFields": [
+            {
+              "table": "Data",
+              "column": "14vgqpy1xbzasr1g68vql17hz4ef"
+            }
+          ],
+          "valueFields": [
+            {
+              "table": "Data",
+              "column": "Profit",
+              "aggregation": "sum"
+            }
+          ],
+          "sourceTableauWorksheet": "Q4",
+          "translationNotes": [
+            "Mapped 3 filters - verify filter behavior"
+          ]
+        },
+        {
+          "name": "Q5",
+          "title": "Q5",
+          "visualType": "clusteredBarChart",
+          "position": {
+            "x": 34200.0,
+            "y": 31875.0,
+            "width": 33300.0,
+            "height": 24000.0
+          },
+          "categoryFields": [],
+          "valueFields": [],
+          "sourceTableauWorksheet": "Q5",
+          "translationNotes": []
+        },
+        {
+          "name": "Q5",
+          "title": "Q5",
+          "visualType": "clusteredBarChart",
+          "position": {
+            "x": 47800.0,
+            "y": 33625.0,
+            "width": 14000.0,
+            "height": 9500.0
+          },
+          "categoryFields": [],
+          "valueFields": [],
+          "sourceTableauWorksheet": "Q5",
+          "translationNotes": []
+        },
+        {
+          "name": "Q6",
+          "title": "Q6",
+          "visualType": "clusteredBarChart",
+          "position": {
+            "x": 63400.0,
+            "y": 40750.0,
+            "width": 33300.0,
+            "height": 24000.0
+          },
+          "categoryFields": [
+            {
+              "table": "Data",
+              "column": "14vgqpy1xbzasr1g68vql17hz4ef"
+            }
+          ],
+          "valueFields": [
+            {
+              "table": "Data",
+              "column": "Shipping Cost",
+              "aggregation": "sum"
+            }
+          ],
+          "sourceTableauWorksheet": "Q6",
+          "translationNotes": [
+            "Mapped 4 filters - verify filter behavior"
+          ]
+        },
+        {
+          "name": "Q7",
+          "title": "Q7",
+          "visualType": "clusteredBarChart",
+          "position": {
+            "x": 1200.0,
+            "y": 69250.0,
+            "width": 33300.0,
+            "height": 24000.0
+          },
+          "categoryFields": [
+            {
+              "table": "Data",
+              "column": "14vgqpy1xbzasr1g68vql17hz4ef"
+            },
+            {
+              "table": "Data",
+              "column": "14vgqpy1xbzasr1g68vql17hz4ef"
+            }
+          ],
+          "valueFields": [
+            {
+              "table": "Data",
+              "column": "Profit",
+              "aggregation": "sum"
+            },
+            {
+              "table": "Data",
+              "column": "Sales",
+              "aggregation": "sum"
+            }
+          ],
+          "sourceTableauWorksheet": "Q7",
+          "translationNotes": [
+            "Mapped 1 filters - verify filter behavior"
+          ]
+        },
+        {
+          "name": "Q8",
+          "title": "Q8",
+          "visualType": "clusteredBarChart",
+          "position": {
+            "x": 61600.0,
+            "y": 72375.0,
+            "width": 33300.0,
+            "height": 24000.0
+          },
+          "categoryFields": [
+            {
+              "table": "Data",
+              "column": "14vgqpy1xbzasr1g68vql17hz4ef"
+            },
+            {
+              "table": "Data",
+              "column": "Product Sub-Category"
+            },
+            {
+              "table": "Data",
+              "column": "14vgqpy1xbzasr1g68vql17hz4ef"
+            },
+            {
+              "table": "Data",
+              "column": "Latitude (generated)"
+            }
+          ],
+          "valueFields": [],
+          "sourceTableauWorksheet": "Q8",
+          "translationNotes": [
+            "Mapped 3 filters - verify filter behavior"
+          ]
+        },
+        {
+          "name": "Q8",
+          "title": "Q8",
+          "visualType": "clusteredBarChart",
+          "position": {
+            "x": 6000.0,
+            "y": 64625.0,
+            "width": 14000.0,
+            "height": 9500.0
+          },
+          "categoryFields": [
+            {
+              "table": "Data",
+              "column": "14vgqpy1xbzasr1g68vql17hz4ef"
+            },
+            {
+              "table": "Data",
+              "column": "Product Sub-Category"
+            },
+            {
+              "table": "Data",
+              "column": "14vgqpy1xbzasr1g68vql17hz4ef"
+            },
+            {
+              "table": "Data",
+              "column": "Latitude (generated)"
+            }
+          ],
+          "valueFields": [],
+          "sourceTableauWorksheet": "Q8",
+          "translationNotes": [
+            "Mapped 3 filters - verify filter behavior"
+          ]
+        }
+      ],
+      "sourceTableauDashboard": "Dashboard 1"
+    }
+  ]
+}

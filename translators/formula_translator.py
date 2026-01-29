@@ -165,12 +165,13 @@ class FormulaTranslator:
                 pass
         return self._openai_client
     
-    def translate(self, calc_field: TableauCalculatedField) -> TranslationResult:
+    def translate(self, calc_field: TableauCalculatedField, table_name: Optional[str] = None) -> TranslationResult:
         """
         Translate a Tableau calculated field to DAX.
         
         Args:
             calc_field: Tableau calculated field to translate
+            table_name: Optional table name for field references
             
         Returns:
             TranslationResult with DAX expression and metadata
@@ -179,25 +180,25 @@ class FormulaTranslator:
         
         # Determine translation strategy based on calculation type
         if calc_field.calculation_type in [CalculationType.SIMPLE, CalculationType.ROW_LEVEL]:
-            return self._translate_simple(formula)
+            return self._translate_simple(formula, table_name)
         
         elif calc_field.calculation_type == CalculationType.AGGREGATE:
-            return self._translate_aggregate(formula)
+            return self._translate_aggregate(formula, table_name)
         
         elif calc_field.is_lod:
-            return self._translate_lod(formula, calc_field.calculation_type, calc_field.lod_dimensions)
+            return self._translate_lod(formula, calc_field.calculation_type, calc_field.lod_dimensions, table_name)
         
         elif calc_field.is_table_calc:
-            return self._translate_table_calc(formula, calc_field.table_calc_type)
+            return self._translate_table_calc(formula, calc_field.table_calc_type, table_name)
         
         else:
             # Default: try simple translation, fall back to GenAI
-            result = self._translate_simple(formula)
+            result = self._translate_simple(formula, table_name)
             if result.confidence == TranslationConfidence.FAILED and self.use_genai:
                 return self._translate_with_genai(formula, calc_field)
             return result
     
-    def _translate_simple(self, formula: str) -> TranslationResult:
+    def _translate_simple(self, formula: str, table_name: Optional[str] = None) -> TranslationResult:
         """
         Translate simple formulas using rule-based approach.
         """
@@ -209,7 +210,7 @@ class FormulaTranslator:
             ast = parser.parse()
             
             # Translate AST to DAX
-            dax_expr = self._ast_to_dax(ast, notes)
+            dax_expr = self._ast_to_dax(ast, notes, table_name)
             
             # Determine confidence based on what we encountered
             confidence = TranslationConfidence.HIGH
@@ -233,7 +234,7 @@ class FormulaTranslator:
                 requires_review=True,
             )
     
-    def _ast_to_dax(self, node: ASTNode, notes: List[str]) -> str:
+    def _ast_to_dax(self, node: ASTNode, notes: List[str], table_name: Optional[str] = None) -> str:
         """Convert an AST node to DAX expression."""
         if node.node_type == "number":
             return str(node.value)
@@ -249,13 +250,15 @@ class FormulaTranslator:
         
         if node.node_type == "field":
             # Convert field reference to DAX format
-            # [Field Name] -> 'Table'[Field Name] (we'll use placeholder)
+            # [Field Name] -> 'Table'[Field Name]
             field_name = node.value
+            if table_name:
+                return f"'{table_name}'[{field_name}]"
             return f"[{field_name}]"
         
         if node.node_type == "binary_op":
-            left = self._ast_to_dax(node.children[0], notes)
-            right = self._ast_to_dax(node.children[1], notes)
+            left = self._ast_to_dax(node.children[0], notes, table_name)
+            right = self._ast_to_dax(node.children[1], notes, table_name)
             op = self.OPERATOR_MAP.get(node.value, node.value)
             
             if node.value == "%":
@@ -264,7 +267,7 @@ class FormulaTranslator:
             return f"({left} {op} {right})"
         
         if node.node_type == "unary_op":
-            operand = self._ast_to_dax(node.children[0], notes)
+            operand = self._ast_to_dax(node.children[0], notes, table_name)
             if node.value == "-":
                 return f"-{operand}"
             if node.value == "NOT":
@@ -272,39 +275,39 @@ class FormulaTranslator:
             return operand
         
         if node.node_type == "comparison":
-            left = self._ast_to_dax(node.children[0], notes)
-            right = self._ast_to_dax(node.children[1], notes)
+            left = self._ast_to_dax(node.children[0], notes, table_name)
+            right = self._ast_to_dax(node.children[1], notes, table_name)
             op = self.OPERATOR_MAP.get(node.value, node.value)
             return f"{left} {op} {right}"
         
         if node.node_type == "function":
-            return self._translate_function(node, notes)
+            return self._translate_function(node, notes, table_name)
         
         if node.node_type == "if":
-            return self._translate_if(node, notes)
+            return self._translate_if(node, notes, table_name)
         
         if node.node_type == "case":
-            return self._translate_case(node, notes)
+            return self._translate_case(node, notes, table_name)
         
         if node.node_type == "lod":
             # LOD expressions need special handling
             notes.append("LOD expression requires CALCULATE pattern")
             lod_type = node.value
             dims = node.metadata.get("dimensions", [])
-            inner_expr = self._ast_to_dax(node.children[0], notes) if node.children else "0"
-            return self._build_lod_dax(lod_type, dims, inner_expr)
+            inner_expr = self._ast_to_dax(node.children[0], notes, table_name) if node.children else "0"
+            return self._build_lod_dax(lod_type, dims, inner_expr, table_name or "Table")
         
         if node.node_type == "error":
             notes.append(f"Parse error: {node.value}")
             return f"/* Error: {node.value} */"
         
         return f"/* Unknown node type: {node.node_type} */"
-    
-    def _translate_function(self, node: ASTNode, notes: List[str]) -> str:
+
+    def _translate_function(self, node: ASTNode, notes: List[str], table_name: Optional[str] = None) -> str:
         """Translate a function call to DAX using extended mappings."""
         func_name = node.value.upper()
-        args = [self._ast_to_dax(child, notes) for child in node.children]
-        
+        args = [self._ast_to_dax(child, notes, table_name) for child in node.children]
+
         # First check extended mappings for comprehensive function support
         extended_mapping = get_mapping(func_name)
         if extended_mapping:
@@ -412,7 +415,7 @@ class FormulaTranslator:
         notes.append(f"Unknown function: {func_name}")
         return f"{func_name}({', '.join(args)})"
     
-    def _translate_if(self, node: ASTNode, notes: List[str]) -> str:
+    def _translate_if(self, node: ASTNode, notes: List[str], table_name: Optional[str] = None) -> str:
         """Translate IF-THEN-ELSE to DAX IF."""
         conditions_count = node.metadata.get("conditions_count", 1)
         has_else = node.metadata.get("has_else", False)
@@ -423,23 +426,23 @@ class FormulaTranslator:
         
         if conditions_count == 1:
             # Simple IF
-            cond_dax = self._ast_to_dax(conditions[0], notes)
-            then_dax = self._ast_to_dax(results[0], notes)
-            else_dax = self._ast_to_dax(else_result, notes) if else_result else "BLANK()"
+            cond_dax = self._ast_to_dax(conditions[0], notes, table_name)
+            then_dax = self._ast_to_dax(results[0], notes, table_name)
+            else_dax = self._ast_to_dax(else_result, notes, table_name) if else_result else "BLANK()"
             return f"IF({cond_dax}, {then_dax}, {else_dax})"
         else:
             # Multiple conditions -> nested IF or SWITCH(TRUE(), ...)
             parts = []
             for i, (cond, result) in enumerate(zip(conditions, results)):
-                cond_dax = self._ast_to_dax(cond, notes)
-                result_dax = self._ast_to_dax(result, notes)
+                cond_dax = self._ast_to_dax(cond, notes, table_name)
+                result_dax = self._ast_to_dax(result, notes, table_name)
                 parts.append(f"{cond_dax}, {result_dax}")
             
-            else_dax = self._ast_to_dax(else_result, notes) if else_result else "BLANK()"
+            else_dax = self._ast_to_dax(else_result, notes, table_name) if else_result else "BLANK()"
             
             return f"SWITCH(TRUE(), {', '.join(parts)}, {else_dax})"
     
-    def _translate_case(self, node: ASTNode, notes: List[str]) -> str:
+    def _translate_case(self, node: ASTNode, notes: List[str], table_name: Optional[str] = None) -> str:
         """Translate CASE-WHEN to DAX SWITCH."""
         when_count = node.metadata.get("when_count", 0)
         has_else = node.metadata.get("has_else", False)
@@ -449,15 +452,15 @@ class FormulaTranslator:
         then_results = node.children[when_count + 1:when_count * 2 + 1]
         else_result = node.children[-1] if has_else else None
         
-        case_dax = self._ast_to_dax(case_expr, notes)
+        case_dax = self._ast_to_dax(case_expr, notes, table_name)
         
         pairs = []
         for when_val, then_result in zip(when_values, then_results):
-            when_dax = self._ast_to_dax(when_val, notes)
-            then_dax = self._ast_to_dax(then_result, notes)
+            when_dax = self._ast_to_dax(when_val, notes, table_name)
+            then_dax = self._ast_to_dax(then_result, notes, table_name)
             pairs.append(f"{when_dax}, {then_dax}")
         
-        else_dax = self._ast_to_dax(else_result, notes) if else_result else "BLANK()"
+        else_dax = self._ast_to_dax(else_result, notes, table_name) if else_result else "BLANK()"
         
         return f"SWITCH({case_dax}, {', '.join(pairs)}, {else_dax})"
     
@@ -488,18 +491,18 @@ class FormulaTranslator:
         
         return inner_expr
     
-    def _translate_aggregate(self, formula: str) -> TranslationResult:
+    def _translate_aggregate(self, formula: str, table_name: Optional[str] = None) -> TranslationResult:
         """Translate aggregate formulas."""
         # Use simple translation as aggregates are straightforward
-        return self._translate_simple(formula)
+        return self._translate_simple(formula, table_name)
     
     def _translate_lod(self, formula: str, calc_type: CalculationType, 
-                       dimensions: List[str]) -> TranslationResult:
+                       dimensions: List[str], table_name: Optional[str] = None) -> TranslationResult:
         """Translate LOD expressions."""
         notes = ["LOD expression translated using CALCULATE pattern"]
         
         # Try rule-based first
-        result = self._translate_simple(formula)
+        result = self._translate_simple(formula, table_name)
         
         if result.confidence == TranslationConfidence.FAILED and self.use_genai:
             return self._translate_with_genai(formula, None, "LOD")
@@ -507,7 +510,7 @@ class FormulaTranslator:
         return result
     
     def _translate_table_calc(self, formula: str, 
-                              calc_type: Optional[str]) -> TranslationResult:
+                              calc_type: Optional[str], table_name: Optional[str] = None) -> TranslationResult:
         """Translate table calculations."""
         notes = [
             f"Table calculation ({calc_type or 'unknown'}) - requires careful review",
@@ -519,7 +522,7 @@ class FormulaTranslator:
             return self._translate_with_genai(formula, None, "table_calc")
         
         # Attempt rule-based translation
-        result = self._translate_simple(formula)
+        result = self._translate_simple(formula, table_name)
         result.notes.extend(notes)
         result.confidence = TranslationConfidence.LOW
         result.requires_review = True

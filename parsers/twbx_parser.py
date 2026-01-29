@@ -240,17 +240,65 @@ class TWBXParser:
         }
         return type_map.get(class_name.lower(), class_name)
     
+    def _clean_field_name(self, name: str) -> str:
+        """
+        Clean internal Tableau field names and resolve aliases.
+        Example: [federated.14v...].[none:Product Name:nk] -> Product Name
+        """
+        if not name:
+            return ""
+            
+        # Handle multipart names like [ds].[field] or [field]
+        # First, normalize by removing outer brackets if the whole thing is wrapped
+        if name.startswith("[") and name.endswith("]"):
+            # Check if it's a multipart [A].[B]
+            if "].[" in name:
+                parts = name.split("].[")
+                # Take the last part and clean it
+                name = parts[-1].strip("[]")
+            else:
+                name = name.strip("[]")
+        
+        # Handle cases like federated.14vgqpy1xbzasr1g68vql17hz4ef.Product Name
+        if "." in name and not name.startswith("["):
+            parts = name.split(".")
+            # If the first part looks like a Tableau internal ID (long hash)
+            if len(parts) > 1 and (len(parts[0]) > 15 or parts[0].startswith("federated")):
+                name = parts[-1]
+
+        # Handle prefixes like none:Product Name:nk or sum:Sales:qk
+        if ":" in name:
+            # Common Tableau prefixes in internal names
+            prefixes = ["none", "sum", "avg", "min", "max", "count", "countd", "attr", "usr", "calculation"]
+            parts = name.split(":")
+            
+            # If we have prefix:name:suffix or prefix:name
+            if parts[0].lower() in prefixes:
+                if len(parts) >= 2:
+                    name = parts[1]
+            elif len(parts) > 1:
+                # If not a known prefix, it might be the name itself contains a colon
+                # or it's a name:suffix pattern
+                name = parts[0]
+                
+        return name.strip("[] ")
+
     def _parse_columns(self, ds_elem: etree._Element) -> List[TableauColumn]:
         """Parse column definitions from a data source."""
         columns = []
         
         for col_elem in ds_elem.findall(".//column"):
             name = col_elem.get("name", "")
+            caption = col_elem.get("caption")
+            
             if not name or name.startswith("[Calculation_"):
                 continue
             
-            # Clean up field name (remove brackets)
-            clean_name = name.strip("[]")
+            # Clean up field name
+            clean_name = self._clean_field_name(name)
+            
+            # Use caption if available, it's the user-facing name
+            display_name = caption if caption else clean_name
             
             datatype_str = col_elem.get("datatype", "string")
             datatype = self.DATATYPE_MAP.get(datatype_str, DataType.UNKNOWN)
@@ -263,7 +311,7 @@ class TWBXParser:
             
             columns.append(TableauColumn(
                 name=clean_name,
-                caption=col_elem.get("caption"),
+                caption=caption,
                 datatype=datatype,
                 role=role,
                 aggregation=aggregation,
@@ -279,6 +327,7 @@ class TWBXParser:
         
         for col_elem in ds_elem.findall(".//column"):
             name = col_elem.get("name", "")
+            caption = col_elem.get("caption")
             
             # Check if this is a calculated field
             calc_elem = col_elem.find(".//calculation")
@@ -290,25 +339,26 @@ class TWBXParser:
                 continue
             
             # Clean up field name
-            clean_name = name.strip("[]")
+            clean_name = self._clean_field_name(name)
             
             # Determine calculation type
             calc_type, lod_dims, table_calc_info = self._analyze_formula(formula)
             
-            # Get referenced fields
-            referenced_fields = self._extract_field_references(formula)
+            # Get referenced fields - we should clean these too
+            raw_references = self._extract_field_references(formula)
+            referenced_fields = [self._clean_field_name(ref) for ref in raw_references]
             
             datatype_str = col_elem.get("datatype", "string")
             datatype = self.DATATYPE_MAP.get(datatype_str, DataType.UNKNOWN)
             
             calc_fields.append(TableauCalculatedField(
                 name=clean_name,
-                caption=col_elem.get("caption"),
+                caption=caption,
                 formula=formula,
                 datatype=datatype,
                 calculation_type=calc_type,
                 role=col_elem.get("role", "measure"),
-                lod_dimensions=lod_dims,
+                lod_dimensions=[self._clean_field_name(d) for d in lod_dims],
                 table_calc_type=table_calc_info.get("type"),
                 table_calc_direction=table_calc_info.get("direction"),
                 referenced_fields=referenced_fields,
@@ -514,6 +564,10 @@ class TWBXParser:
                 agg = AggregationType.NONE
                 field_name = field
                 
+                # Tableau internal shelf text often looks like [avg:Sales:qk] or [none:Category:nk]
+                # or [federated.123].[none:Category:nk]
+                
+                # Check for aggregation prefixes in the field string
                 for agg_name in ["SUM", "AVG", "COUNT", "COUNTD", "MIN", "MAX", "MEDIAN", "ATTR"]:
                     if field.upper().startswith(f"{agg_name}("):
                         agg = self.AGGREGATION_MAP.get(agg_name.lower(), AggregationType.NONE)
@@ -523,8 +577,15 @@ class TWBXParser:
                             field_name = inner_match.group(1)
                         break
                 
+                # If no aggregation found yet, check for the none: / sum: style in the name itself
+                if agg == AggregationType.NONE:
+                    if ":" in field:
+                        parts = field.split(":")
+                        if parts[0].lower() in self.AGGREGATION_MAP:
+                            agg = self.AGGREGATION_MAP.get(parts[0].lower())
+                
                 mappings.append(FieldMapping(
-                    field=field_name.strip("[]"),
+                    field=self._clean_field_name(field_name),
                     shelf=shelf_name,
                     aggregation=agg,
                 ))
@@ -539,7 +600,7 @@ class TWBXParser:
             field = encoding_elem.get("column", "")
             if field:
                 return FieldMapping(
-                    field=field.strip("[]"),
+                    field=self._clean_field_name(field),
                     shelf=encoding_type,
                 )
         return None
@@ -552,7 +613,7 @@ class TWBXParser:
             field = encoding_elem.get("column", "")
             if field:
                 mappings.append(FieldMapping(
-                    field=field.strip("[]"),
+                    field=self._clean_field_name(field),
                     shelf=encoding_type,
                 ))
         
@@ -563,9 +624,11 @@ class TWBXParser:
         filters = []
         
         for filter_elem in ws_elem.findall(".//filter"):
-            field = filter_elem.get("column", "").strip("[]")
-            if not field:
+            field_raw = filter_elem.get("column", "")
+            if not field_raw:
                 continue
+            
+            field = self._clean_field_name(field_raw)
             
             filter_type = "categorical"
             values = []

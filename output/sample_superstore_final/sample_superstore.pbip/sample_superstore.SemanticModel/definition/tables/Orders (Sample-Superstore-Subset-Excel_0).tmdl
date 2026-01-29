@@ -1,0 +1,162 @@
+table 'Orders (Sample-Superstore-Subset-Excel_0)'
+    lineageTag: c07b490f-82ca-4509-a0b4-52c9e2d2d54a
+
+    column Row ID
+        dataType: int64
+        lineageTag: 12bc5883-2a4c-41db-ae1e-665bfa018fc4
+
+    column Order Priority
+        dataType: string
+        lineageTag: b27f9b5a-0b24-460e-b820-8583506b0138
+
+    column Discount
+        dataType: double
+        lineageTag: 735be148-55f3-4d3a-b518-64a40be501cc
+
+    column Unit Price
+        dataType: double
+        lineageTag: 34b07eeb-1b01-4c8f-ba0c-d70f5ec0fd29
+
+    column Shipping Cost
+        dataType: double
+        lineageTag: 88feaa6b-6204-461e-9a36-d483ebae80ea
+
+    column Customer ID
+        dataType: int64
+        lineageTag: 73d7f21d-4599-4809-b396-21027c78160c
+
+    column Customer Name
+        dataType: string
+        lineageTag: f04e494a-eef9-4b12-9641-a3f1e055f6e1
+
+    column Ship Mode
+        dataType: string
+        lineageTag: 9e227a2c-0caf-4500-9112-e78abe82182c
+
+    column Customer Segment
+        dataType: string
+        lineageTag: 3a0fdd88-8769-4980-a3a6-cfbb6b16ba90
+
+    column Product Category
+        dataType: string
+        lineageTag: ee9b4519-bf17-4476-8c81-89bf3f6c932a
+
+    column Product Sub-Category
+        dataType: string
+        lineageTag: d4de740b-1f4b-4209-b6cc-19dfee0bddf2
+
+    column Product Container
+        dataType: string
+        lineageTag: 7bf2dec2-ab1a-4c90-a55c-5ebed61884df
+
+    column Product Name
+        dataType: string
+        lineageTag: 68326d2a-1c54-470d-87d7-4c9e2c362aa5
+
+    column Product Base Margin
+        dataType: double
+        lineageTag: d6c7d54f-8bd4-4f66-b11a-c8d0fc598a27
+
+    column Region
+        dataType: string
+        lineageTag: 8d423c07-cabf-43bf-8bcb-7f61ad87b470
+
+    column State or Province
+        dataType: string
+        lineageTag: 433e25d0-ab0f-4fff-bd23-b15621bfed2a
+
+    column City
+        dataType: string
+        lineageTag: be5c27ad-2043-415b-a00f-2db418e5b75d
+
+    column Postal Code
+        dataType: int64
+        lineageTag: c0d1157d-086f-4be6-9cd6-def0e841f1d9
+
+    column Order Date
+        dataType: dateTime
+        lineageTag: ebb53283-7386-47e8-ba0e-00d0f7091536
+
+    column Ship Date
+        dataType: dateTime
+        lineageTag: bf29bebb-ca75-4147-ae56-54f661c0efa4
+
+    column Profit
+        dataType: double
+        lineageTag: a0dca107-201d-444e-8423-1829cbafb2f1
+
+    column Quantity ordered new
+        dataType: int64
+        lineageTag: 91c4b64d-4e53-43ae-b635-9e026bbfcbba
+
+    column Sales
+        dataType: double
+        lineageTag: bdcdcef3-4d6a-4157-8725-7909d7da073c
+
+    column Order ID
+        dataType: int64
+        lineageTag: 7e5e5ed3-e606-4340-96f3-0dadacbb3ed4
+
+    column City_2
+        dataType: string
+        lineageTag: 1a3eec57-e3e6-430a-84b6-2a362bdbbb4e
+
+    column Customer ID_2
+        dataType: int64
+        lineageTag: 59c8f5c3-f066-4a2d-adf4-2cc0dfa587c0
+
+    column Discount_2
+        dataType: double
+        lineageTag: 94c1fc85-3c43-4e0e-ad21-47a388db525b
+
+    column Number of Records
+        dataType: int64
+        lineageTag: a285649f-5915-424c-819e-d76667403f78
+
+    column Order ID_2
+        dataType: int64
+        lineageTag: ee920ce4-b682-4547-94d9-530ef8151921
+
+    column Postal Code_2
+        dataType: int64
+        lineageTag: da9f6836-a44a-40a8-828e-de038f4b1123
+
+    column Product Base Margin_2
+        dataType: double
+        lineageTag: 88e8d165-5338-48dc-b15e-f174bb729085
+
+    column Profit_2
+        dataType: double
+        lineageTag: c261c4ef-d151-47d3-a40e-c0681ddc8c56
+
+    column Quantity ordered new_2
+        dataType: int64
+        lineageTag: ea668581-a9a5-4f56-902f-64b2283c0503
+
+    column Row ID_2
+        dataType: int64
+        lineageTag: d7acb1e7-24d7-4d18-a955-3f0b1c197464
+
+    column Sales_2
+        dataType: double
+        lineageTag: fd0ee474-d10a-439b-b323-3c311abb2c45
+
+    column Shipping Cost_2
+        dataType: double
+        lineageTag: 963f463c-ada8-4f94-aeec-d33324df269d
+
+    column State or Province_2
+        dataType: string
+        lineageTag: 8d3f1750-1a00-45da-9c1c-f65ed8ee2c4e
+
+    column Unit Price_2
+        dataType: double
+        lineageTag: fcb1a4f4-838a-4211-b952-ee9a3e3e7f93
+
+    measure 'Gross Profit Ratio' = ('Orders (Sample-Superstore-Subset-Excel_0)'[Profit] / 'Orders (Sample-Superstore-Subset-Excel_0)'[Sales])
+        lineageTag: ad1229f0-2ca9-42ce-9596-46223e64a227
+        description: Translated from Tableau: [Profit]/[Sales]...
+
+    measure 'Number of Records' = 1.0
+        lineageTag: dff4ae04-f0d1-4691-afa5-07ddd3b81b4d
+        description: Translated from Tableau: 1...

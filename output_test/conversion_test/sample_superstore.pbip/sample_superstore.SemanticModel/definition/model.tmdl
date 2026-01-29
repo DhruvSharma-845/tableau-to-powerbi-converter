@@ -1,0 +1,8 @@
+model Model
+    culture: en-US
+    defaultPowerBIDataSourceVersion: powerBI_V3
+
+relationship Inferred_Orders (Sample-Superstore-Subset-Excel_0)_8_Orders (Sample-Superstore-Subset-Excel_0)_8
+    fromColumn: 'Orders (Sample-Superstore-Subset-Excel_0)_8'[Row ID]
+    toColumn: 'Orders (Sample-Superstore-Subset-Excel_0)_8'[Row ID]
+    crossFilteringBehavior: oneDirection

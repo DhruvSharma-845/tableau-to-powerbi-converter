@@ -1,0 +1,14 @@
+table 'Parameters'
+    lineageTag: 9026078e-f5cc-4922-8f46-5072d7866d26
+
+    column ParameterValue
+        dataType: double
+        lineageTag: 28368f6a-1ab7-4685-bc0c-a2f2d5410e58
+
+    measure 'Top Customers' = SELECTEDVALUE('Top Customers'[Value], 5)
+        lineageTag: 66a78230-6c87-4ca8-bee3-bdb1474eb58a
+        description: Tableau parameter - configure as What-If parameter
+
+    measure 'Profit Bin Size' = SELECTEDVALUE('Profit Bin Size'[Value], 200)
+        lineageTag: a9efff33-9e42-4dc2-b962-0146c9b91157
+        description: Tableau parameter - configure as What-If parameter
