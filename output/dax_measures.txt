@@ -1,0 +1,52 @@
+============================================================
+DAX MEASURES - Ready to copy into Power BI
+============================================================
+Generated: 2026-01-29T05:39:50.225861
+Source: samples/sample_superstore.twbx
+
+Instructions:
+1. Open your Power BI report
+2. Go to Modeling > New Measure
+3. Copy and paste each measure below
+
+============================================================
+
+-- Table: Orders (Sample-Superstore-Subset-Excel_0)
+----------------------------------------
+
+-- Gross Profit Ratio
+-- Source Tableau field: Calculation_415175602765828097
+-- Source formula: [Profit]/[Sales]...
+Gross Profit Ratio = 
+    ('Orders (Sample-Superstore-Subset-Excel_0)'[Profit] / 'Orders (Sample-Superstore-Subset-Excel_0)'[Sales])
+
+
+-- Number of Records
+-- Source Tableau field: Number of Records
+-- Source formula: 1...
+Number of Records = 
+    1.0
+
+
+-- Table: Parameters
+----------------------------------------
+
+-- Top Customers
+-- Note: Converted from Tableau parameter
+-- Note: Original type: integer
+-- Note: Allowable values: range
+-- Note: Range: 5 to 20, step 1.0
+-- Note: Create as What-If parameter with these range settings
+Top Customers = 
+    SELECTEDVALUE('Top Customers'[Value], 5)
+
+
+-- Profit Bin Size
+-- Note: Converted from Tableau parameter
+-- Note: Original type: integer
+-- Note: Allowable values: range
+-- Note: Range: 50 to 200, step 1.0
+-- Note: Create as What-If parameter with these range settings
+Profit Bin Size = 
+    SELECTEDVALUE('Profit Bin Size'[Value], 200)
+

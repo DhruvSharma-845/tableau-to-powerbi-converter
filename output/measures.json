@@ -1,0 +1,70 @@
+{
+  "exportDate": "2026-01-29T05:39:50.223360",
+  "totalMeasures": 4,
+  "measures": [
+    {
+      "name": "Gross Profit Ratio",
+      "table": "Orders (Sample-Superstore-Subset-Excel_0)",
+      "expression": "('Orders (Sample-Superstore-Subset-Excel_0)'[Profit] / 'Orders (Sample-Superstore-Subset-Excel_0)'[Sales])",
+      "description": "Translated from Tableau: [Profit]/[Sales]...",
+      "displayFolder": "Calculated Measures",
+      "formatString": "#,##0.00",
+      "sourceTableauField": "Calculation_415175602765828097",
+      "sourceFormula": "[Profit]/[Sales]",
+      "translationNotes": [],
+      "requiresReview": false,
+      "confidence": 1.0
+    },
+    {
+      "name": "Number of Records",
+      "table": "Orders (Sample-Superstore-Subset-Excel_0)",
+      "expression": "1.0",
+      "description": "Translated from Tableau: 1...",
+      "displayFolder": "Calculated Measures",
+      "formatString": "#,##0.00",
+      "sourceTableauField": "Number of Records",
+      "sourceFormula": "1",
+      "translationNotes": [],
+      "requiresReview": false,
+      "confidence": 1.0
+    },
+    {
+      "name": "Top Customers",
+      "table": "Parameters",
+      "expression": "SELECTEDVALUE('Top Customers'[Value], 5)",
+      "description": "Tableau parameter - configure as What-If parameter",
+      "displayFolder": null,
+      "formatString": null,
+      "sourceTableauField": null,
+      "sourceFormula": null,
+      "translationNotes": [
+        "Converted from Tableau parameter",
+        "Original type: integer",
+        "Allowable values: range",
+        "Range: 5 to 20, step 1.0",
+        "Create as What-If parameter with these range settings"
+      ],
+      "requiresReview": true,
+      "confidence": 0.5
+    },
+    {
+      "name": "Profit Bin Size",
+      "table": "Parameters",
+      "expression": "SELECTEDVALUE('Profit Bin Size'[Value], 200)",
+      "description": "Tableau parameter - configure as What-If parameter",
+      "displayFolder": null,
+      "formatString": null,
+      "sourceTableauField": null,
+      "sourceFormula": null,
+      "translationNotes": [
+        "Converted from Tableau parameter",
+        "Original type: integer",
+        "Allowable values: range",
+        "Range: 50 to 200, step 1.0",
+        "Create as What-If parameter with these range settings"
+      ],
+      "requiresReview": true,
+      "confidence": 0.5
+    }
+  ]
+}
